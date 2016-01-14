@@ -1,9 +1,9 @@
-subroutine getdata(filename,npt,nmax,x,y,yerr)
+subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep)
 use precision
 implicit none
 integer :: npt,nmax,nunit,filestatus,i,npix
-real(double) :: minx,mean,time,flux,dumr,sky,xpos,ypos
-real(double), dimension(:) :: x,y,yerr
+real(double) :: minx,mean,time,flux,dumr,sky,xp,yp,xn,yn
+real(double), dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep
 character(80) :: filename,dumc
 
 nunit=10
@@ -20,15 +20,19 @@ do
       write(0,*) "nmax: ",nmax
       stop
    endif
-   read(nunit,*,iostat=filestatus) time,flux,sky,dumr,dumr,dumr,npix,   &
-      dumc,xpos,ypos
+   read(nunit,*,iostat=filestatus) time,flux,sky,dumr,xn,yn,npix,   &
+      dumc,xp,yp
    if(filestatus == 0) then
-      if((xpos.gt.-0.2).and.(xpos.lt.0.4).and.(ypos.gt.-0.15).and.      &
-       (ypos.lt.0.25))then
+      if((xp.gt.-0.2).and.(xp.lt.0.4).and.(yp.gt.-0.15).and.      &
+       (yp.lt.0.25))then
          i=i+1
          x(i)=time
          y(i)=flux-sky*dble(npix)
          yerr(i)=sqrt(abs(flux)) !approx error
+         xpos(i)=xp
+         ypos(i)=yp
+         xnep(i)=xn
+         ynep(i)=yn
       endif
    elseif(filestatus == -1) then
       exit  !successively break from data read loop.

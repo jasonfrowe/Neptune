@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdata
 
-fitdataincl = precision.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o
+fitdataincl = precision.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o
 fitdata: fitdata.f90 $(fitdataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdata.f90 $(fitdataincl) $(LIBS) 
 
@@ -47,6 +47,8 @@ getdata.o: $(UTILS)getdata.f90
 	$(F90) $(FFLAGS) $(UTILS)getdata.f90
 plotdata.o: $(UTILS)plotdata.f90
 	$(F90) $(FFLAGS) $(UTILS)plotdata.f90
+plotdatascatter.o: $(UTILS)plotdatascatter.f90
+	$(F90) $(FFLAGS) $(UTILS)plotdatascatter.f90
 fitline.o: $(UTILS)fitline.f90
 	$(F90) $(FFLAGS) $(UTILS)fitline.f90
 plotline.o: $(UTILS)plotline.f90
@@ -67,6 +69,8 @@ blas.o: $(UTILS)blas.f
 	$(F90) $(FFLAGS) $(UTILS)blas.f
 plotsamples.o: $(UTILS)plotsamples.f90
 	$(F90) $(FFLAGS) $(UTILS)plotsamples.f90
+fitter.o: $(UTILS)fitter.f90
+	$(F90) $(FFLAGS) $(UTILS)fitter.f90
 
 # Removing object files
 .PHONY : clean

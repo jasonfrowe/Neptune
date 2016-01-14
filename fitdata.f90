@@ -5,18 +5,19 @@ integer :: iargc,nmax,npt,npars,info,nrhs,i
 real(double) :: bpix
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: x,y,yerr,pars,alpha,yerr2,mu,&
-   std,res
+   std,res,xpos,ypos,xnep,ynep
 real(double), allocatable, dimension(:,:) :: Kernel,Kfac,newKernelT,cov
 character(80) :: filename
 
 !These are F90 interfaces that allow one to pass assumed sized arrays
 !to subroutines.
 interface !reads in a three-column ascii space seperated file
-   subroutine getdata(filename,npt,nmax,x,y,yerr)
+   subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep)
       use precision
       implicit none
       integer, intent(inout) :: npt,nmax
-      real(double), dimension(:), intent(inout) :: x,y,yerr
+      real(double), dimension(:), intent(inout) :: x,y,yerr,xpos,ypos,  &
+         xnep,ynep
       character(80), intent(in) :: filename
    end subroutine getdata
 end interface
@@ -28,6 +29,15 @@ interface !makes a plot of your data.
       real, dimension(:), intent(inout) :: bb
       real(double), dimension(:), intent(in) :: x,y,yerr
    end subroutine plotdata
+end interface
+interface !makes a plot of your data.
+   subroutine plotdatascatter(npt,x,y,yerr,bb)
+      use precision
+      implicit none
+      integer, intent(in) :: npt
+      real, dimension(:), intent(inout) :: bb
+      real(double), dimension(:), intent(in) :: x,y,yerr
+   end subroutine plotdatascatter
 end interface
 interface !fits a straight line to data
    subroutine fitline(npt,x,y,yerr,ans,eans,chisq)
@@ -73,6 +83,23 @@ interface !plots samples and uncertainties
       real(double), dimension(:), intent(in) :: x1,mu,std
    end subroutine plotsamples
 end interface
+interface
+   subroutine fitter(npt,Kfac)
+      use precision
+      implicit none
+      integer :: npt
+      real(double), dimension(:,:) :: Kfac
+   end subroutine fitter
+end interface
+
+!Here are the parameters that control the co-variance matrix and fitted
+!parameters
+npars=4 !number of parameters used for model of the matrix
+allocate(pars(npars))  !model parameters for Kernel generation.
+pars(1)=1.0d0 !amp scale for exp
+pars(2)=0.146d0 !length scale for exp
+pars(3)=100.0 !second amp scale
+pars(4)=500.0 !second length scale
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -84,12 +111,13 @@ endif
 call getarg(1,filename)
 
 nmax=80000 !initial guess for number of datapoints.
-allocate(x(nmax),y(nmax),yerr(nmax)) !allocate arrays
-call getdata(filename,npt,nmax,x,y,yerr) !subroutine to read in data
+allocate(x(nmax),y(nmax),yerr(nmax),xpos(nmax),ypos(nmax),xnep(nmax),   &
+   ynep(nmax)) !allocate arrays
+call getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep) !subroutine to read in data
 write(0,*) "Number of points read: ",npt !report how much data was read in
 
 !open PGPLOT device
-call pgopen('/xserve')  !'?' lets the user choose the device.
+call pgopen('?')  !'?' lets the user choose the device.
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines
@@ -97,16 +125,10 @@ call pgslw(3) !thicker lines
 !plot the data
 allocate(bb(4)) !contains plot boundaries
 bb=0.0e0 !tell code to generate scale for plot
-call plotdata(npt,x,y,yerr,bb) !plot data
+call plotdatascatter(npt,x,y,yerr,bb) !plot data
 
 !lets make a Kernel/co-variance for the Gaussian process
 allocate(Kernel(npt,npt)) !allocate space
-npars=4 !number of parameters used for model of the matrix
-allocate(pars(npars))
-pars(1)=1.0d0 !amp scale for exp
-pars(2)=0.4d0 !length scale for exp
-pars(3)=100.0 !second amp scale
-pars(4)=500.0 !second length scale
 call makekernel(Kernel,npt,npt,x,x,npt,yerr,npars,pars) !create Kernel
 
 !call pgpage() !create fresh page for plotting
@@ -147,34 +169,51 @@ allocate(yerr2(npt),mu(npt),std(npt))
 yerr2=0.0d0
 call makekernel(Kernel,npt,npt,x,x,npt,yerr2,npars,pars)
 mu=matmul(Kernel,alpha)
+std=0.0d0
 
-allocate(newKernelT(npt,npt))  !allocate space for transposed Kernel
-newKernelT=transpose(Kernel) !create transpose
-allocate(cov(npt,npt))
-!make Kernel based on predicted dataset
-call makekernel(cov,npt,npt,x,x,npt,yerr,npars,pars)
-nrhs=npt !note, more than one column!
-write(0,*) "Beginning Cholesky Solver"
-call dpotrs('U',npt,nrhs,Kfac,npt,newKernelT,npt,info) !Solve
-if (info.ne.0) then !error check
-   write(0,*) "Solver failed with newKernelT"
-   write(0,*) "dpotrs info: ",info
-   stop
-endif
-cov=cov-matmul(Kernel,newKernelT)
-do i=1,npt
-   std(i)=sqrt(cov(i,i)) !use diagonals as estimate of standard deviation
-enddo
-deallocate(Kernel,newKernelT)
+!!uncomment to go after standard-deviations (slow....)
+!allocate(newKernelT(npt,npt))  !allocate space for transposed Kernel
+!newKernelT=transpose(Kernel) !create transpose
+!allocate(cov(npt,npt))
+!!make Kernel based on predicted dataset
+!call makekernel(cov,npt,npt,x,x,npt,yerr,npars,pars)
+!nrhs=npt !note, more than one column!
+!write(0,*) "Beginning Cholesky Solver"
+!call dpotrs('U',npt,nrhs,Kfac,npt,newKernelT,npt,info) !Solve
+!if (info.ne.0) then !error check
+!   write(0,*) "Solver failed with newKernelT"
+!   write(0,*) "dpotrs info: ",info
+!   stop
+!endif
+!cov=cov-matmul(Kernel,newKernelT)
+!do i=1,npt
+!   std(i)=sqrt(cov(i,i)) !use diagonals as estimate of standard deviation
+!enddo
+!deallocate(newKernelT)
 
-!allocate(res(npt))
-!res(1:npt)=y(1:npt)-mu(1:npt)
-!mu=0.0d0
+deallocate(Kernel)
 
-call pgpage()!fresh page for plotting
-bb=0.0e0 !rescale plot
-call plotdata(npt,x,y,yerr,bb) !plot our original dataset
+!call pgpage()!fresh page for plotting
+!bb=0.0e0 !rescale plot
+!call plotdata(npt,x,y,yerr,bb) !plot our original dataset
 call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
+
+!at this point.. everything looks good, so lets call the fitter.
+call fitter(npt,Kfac)
+
+!lets have a look at X-position vs residuals
+call pgpage()
+allocate(res(npt))
+res(1:npt)=y(1:npt)-mu(1:npt)
+bb=0.0e0
+!xnep=xnep-floor(xnep)
+call plotdatascatter(npt,xnep,res,yerr2,bb)
+
+open(unit=10,file="newdata.dat")
+do i=1,npt
+   write(10,'(4(F17.11,1X))') x(i),xnep(i),res(i),yerr(i)
+enddo
+close(10)
 
 !close plotter
 call pgclos()
