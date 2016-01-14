@@ -34,7 +34,7 @@ BIN = /Users/rowe/Documents/Kepler/Neptune/bin/
 UTILS = utils/
 
 #Listing of programs to create.
-all: gptest
+all: fitdata
 
 fitdataincl = precision.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o
 fitdata: fitdata.f90 $(fitdataincl)

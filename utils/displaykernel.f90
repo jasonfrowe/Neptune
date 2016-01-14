@@ -103,9 +103,9 @@ z2=log10(maxp-minlp+1.0)
 !z2=sqrt(maxp-minp)
 
 !linear display
-lparray(nr(1):nr(2),nr(3):nr(4))=parray(nr(1):nr(2),nr(3):nr(4))
-z1=minval(lparray(nr(1):nr(2),nr(3):nr(4)))
-z2=maxval(lparray(nr(1):nr(2),nr(3):nr(4)))
+!lparray(nr(1):nr(2),nr(3):nr(4))=parray(nr(1):nr(2),nr(3):nr(4))
+!z1=minval(lparray(nr(1):nr(2),nr(3):nr(4)))
+!z2=maxval(lparray(nr(1):nr(2),nr(3):nr(4)))
 
 do i=nr(1),nr(2)
    do j=nr(3),nr(4)

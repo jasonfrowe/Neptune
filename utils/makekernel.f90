@@ -36,7 +36,12 @@ do i=1,npt1
    enddo
 enddo
 
-write(0,*) "min max",minval(Kernel(1:npt1,1:npt2)),maxval(Kernel(1:npt1,1:npt2))
+if(minval(Kernel(1:npt1,1:npt2)).lt.0.0)then
+   write(0,*) "****WARNING****"
+   write(0,*) "Kernel has values less than zero.. failure likely"
+endif
+
+!write(0,*) "min max",minval(Kernel(1:npt1,1:npt2)),maxval(Kernel(1:npt1,1:npt2))
 
 return
 end subroutine makekernel
