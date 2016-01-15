@@ -1,21 +1,22 @@
-subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay)
+subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay, &
+   npord)
 use precision
+use fittingmod
 implicit none
-integer :: npt,npars,nfitp,i,npord,iplast,nxpix,ipcurrent,ixo,iyo,nypix
-real(double) :: poly
-real(double), dimension(:) :: pars,x,y,yerr,xnep,ynep,ax,ay
+integer :: npt,nfitp,i,j,iplast,nxpix,ipcurrent,nypix
+real(double) :: poly,tollm
+real(double), dimension(:) :: ax,ay
 real(double), dimension(:,:) :: Kfac
-integer, allocatable, dimension(:) :: isol
-real(double), allocatable, dimension(:) :: sol
-
-nfitp=npars !number of parameters that can be fit.
-allocate(sol(nfitp),isol(nfitp))
-isol=-1 !initiate isol array.  if isol(i).ne.0 then the variable is fit.
-do i=1,npars
-   sol(i)=pars(i)
-enddo
-
-npord=2 !order of polynomial to fit across pixel boundaries.
+!targets for pointer reference to feed fcn
+integer, target :: npars,npord,ixo,iyo
+real(double), dimension(:), target :: pars,x,y,yerr,xnep,ynep
+integer, allocatable, dimension(:), target :: isol
+real(double), allocatable, dimension(:), target :: sol
+!lmdif1 variables
+integer :: nfit,info,lwa
+integer, allocatable, dimension(:) :: iwa
+real(double), allocatable, dimension(:) :: solin,fvec,wa
+external fcn
 
 !figure out number of pixels.
 !X-direction pixels - this needs to be done as a function of time
@@ -45,6 +46,51 @@ do i=2,npt
    endif
 enddo
 write(0,*) "Number of pixels: ",nypix
+
+!assemble model parameters
+nfitp=npars+npord*(nxpix+nypix) !number of parameters that can be fit.
+allocate(sol(nfitp),isol(nfitp))
+isol=-1 !initiate isol array.  if isol(i).ne.0 then the variable is fit.
+do i=1,npars
+   sol(i)=pars(i)
+   isol(i)=0 !keep Kernel constant.
+enddo
+!add in X-pixel model fit.
+do i=1+npars,npars+nxpix*npord
+   sol(i)=0.0d0 !start with a straight line for a guess
+enddo
+!add in Y-pixel model fit
+do i=1+npars+nxpix*npord,npars+nxpix*npord+nypix*npord
+   sol(i)=0.0d0 !start with a straight line for a guess
+enddo
+
+!calculate how many variables are fit.
+nfit=0
+do i=1,nfitp
+   if(isol(i).ne.0)then
+      nfit=nfit+1
+   endif
+enddo
+!allocate space for fitted variables (solin) to feed to lmdif1 and fill
+!in values fo sol.
+allocate(solin(nfit))
+j=0
+do i=1,nfitp
+   if(isol(i).ne.0)then
+      j=j+1
+      solin(j)=sol(i)
+   endif
+enddo
+
+!fvec contains model calculated with solin
+allocate(fvec(npt))
+!work arrays for lmdif1
+lwa=npt*nfit+5*nfit+npt
+allocate(wa(lwa))
+
+tollm=1.0d-12 !tolerence for fitting
+call lmdif1(fcn,npt,nfit,solin,fvec,tollm,info,iwa,wa,lwa)
+write(0,*) "lmdif1 info: ",info
 
 return
 end subroutine fitter

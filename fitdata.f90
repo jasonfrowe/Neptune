@@ -1,7 +1,7 @@
 program fitdata
 use precision
 implicit none
-integer :: iargc,nmax,npt,npars,info,nrhs,i,ixo,iyo
+integer :: iargc,nmax,npt,npars,info,nrhs,i,ixo,iyo,npord
 real(double) :: bpix
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: x,y,yerr,pars,alpha,yerr2,mu,&
@@ -85,10 +85,10 @@ interface !plots samples and uncertainties
 end interface
 interface
    subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo, &
-    ay)
+    ay,npord)
       use precision
       implicit none
-      integer :: npt,npars,ixo,iyo
+      integer :: npt,npars,ixo,iyo,npord
       real(double), dimension(:) :: pars,x,y,yerr,xnep,ynep,ax,ay
       real(double), dimension(:,:) :: Kfac
    end subroutine fitter
@@ -218,7 +218,8 @@ call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
 
 !at this point.. everything looks good, so lets call the fitter.
 write(0,*) "Calling the fitter"
-call fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay)
+npord=2 !order of polynomial to fit across pixel boundaries.
+call fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay,npord)
 
 !!lets have a look at X-position vs residuals
 !call pgpage()
