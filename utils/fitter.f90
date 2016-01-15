@@ -3,12 +3,12 @@ subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay, &
 use precision
 use fittingmod
 implicit none
-integer :: npt,nfitp,i,j,iplast,nxpix,ipcurrent,nypix
+integer :: npt,i,j,iplast,nxpix,ipcurrent,nypix
 real(double) :: poly,tollm
 real(double), dimension(:) :: ax,ay
 real(double), dimension(:,:) :: Kfac
 !targets for pointer reference to feed fcn
-integer, target :: npars,npord,ixo,iyo
+integer, target :: npars,npord,ixo,iyo,nfitp
 real(double), dimension(:), target :: pars,x,y,yerr,xnep,ynep
 integer, allocatable, dimension(:), target :: isol
 real(double), allocatable, dimension(:), target :: sol
@@ -95,6 +95,7 @@ xnep2 => xnep
 ynep2 => ynep
 isol2 => isol
 sol2 => sol
+nfitp2 => nfitp
 
 !fvec contains model calculated with solin
 allocate(fvec(npt))
