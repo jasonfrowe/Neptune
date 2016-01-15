@@ -84,11 +84,12 @@ interface !plots samples and uncertainties
    end subroutine plotsamples
 end interface
 interface
-   subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep)
+   subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo, &
+    ay)
       use precision
       implicit none
-      integer :: npt,npars
-      real(double), dimension(:) :: pars,x,y,yerr,xnep,ynep
+      integer :: npt,npars,ixo,iyo
+      real(double), dimension(:) :: pars,x,y,yerr,xnep,ynep,ax,ay
       real(double), dimension(:,:) :: Kfac
    end subroutine fitter
 end interface
@@ -217,7 +218,7 @@ call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
 
 !at this point.. everything looks good, so lets call the fitter.
 write(0,*) "Calling the fitter"
-call fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep)
+call fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay)
 
 !!lets have a look at X-position vs residuals
 !call pgpage()
