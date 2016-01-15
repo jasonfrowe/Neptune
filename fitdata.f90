@@ -1,11 +1,11 @@
 program fitdata
 use precision
 implicit none
-integer :: iargc,nmax,npt,npars,info,nrhs,i
+integer :: iargc,nmax,npt,npars,info,nrhs,i,ixo,iyo
 real(double) :: bpix
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: x,y,yerr,pars,alpha,yerr2,mu,&
-   std,res,xpos,ypos,xnep,ynep
+   std,res,xpos,ypos,xnep,ynep,ax,ay
 real(double), allocatable, dimension(:,:) :: Kernel,Kfac,newKernelT,cov
 character(80) :: filename
 
@@ -84,13 +84,21 @@ interface !plots samples and uncertainties
    end subroutine plotsamples
 end interface
 interface
-   subroutine fitter(npt,Kfac,npars,pars)
+   subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep)
       use precision
       implicit none
       integer :: npt,npars
-      real(double), dimension(:) :: pars
+      real(double), dimension(:) :: pars,x,y,yerr,xnep,ynep
       real(double), dimension(:,:) :: Kfac
    end subroutine fitter
+end interface
+interface
+   subroutine fitneptunepos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+      use precision
+      implicit none
+      integer :: npt,ixo,iyo
+      real(double), dimension(:) :: x,xnep,ynep,ax,ay
+   end subroutine fitneptunepos
 end interface
 
 !Here are the parameters that control the co-variance matrix and fitted
@@ -114,6 +122,7 @@ call getarg(1,filename)
 nmax=80000 !initial guess for number of datapoints.
 allocate(x(nmax),y(nmax),yerr(nmax),xpos(nmax),ypos(nmax),xnep(nmax),   &
    ynep(nmax)) !allocate arrays
+!it is assumed that the data is sorted wrt time.
 call getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep) !subroutine to read in data
 write(0,*) "Number of points read: ",npt !report how much data was read in
 
@@ -122,6 +131,13 @@ call pgopen('?')  !'?' lets the user choose the device.
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines
+
+!need fits to the motion of Neptune - raw data is too noisy.
+!also means that pixel-crossings is now a linear function (good!)
+ixo=5 !order of polynomial to fit to x-positions
+iyo=5 !order of polynomial to fit to y-positions
+allocate(ax(ixo),ay(iyo))
+call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
 
 !plot the data
 allocate(bb(4)) !contains plot boundaries
@@ -201,7 +217,7 @@ call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
 
 !at this point.. everything looks good, so lets call the fitter.
 write(0,*) "Calling the fitter"
-call fitter(npt,Kfac,npars,pars)
+call fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep)
 
 !!lets have a look at X-position vs residuals
 !call pgpage()
