@@ -84,10 +84,11 @@ interface !plots samples and uncertainties
    end subroutine plotsamples
 end interface
 interface
-   subroutine fitter(npt,Kfac)
+   subroutine fitter(npt,Kfac,npars,pars)
       use precision
       implicit none
-      integer :: npt
+      integer :: npt,npars
+      real(double), dimension(:) :: pars
       real(double), dimension(:,:) :: Kfac
    end subroutine fitter
 end interface
@@ -199,21 +200,22 @@ deallocate(Kernel)
 call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
 
 !at this point.. everything looks good, so lets call the fitter.
-call fitter(npt,Kfac)
+write(0,*) "Calling the fitter"
+call fitter(npt,Kfac,npars,pars)
 
-!lets have a look at X-position vs residuals
-call pgpage()
-allocate(res(npt))
-res(1:npt)=y(1:npt)-mu(1:npt)
-bb=0.0e0
-!xnep=xnep-floor(xnep)
-call plotdatascatter(npt,xnep,res,yerr2,bb)
+!!lets have a look at X-position vs residuals
+!call pgpage()
+!allocate(res(npt))
+!res(1:npt)=y(1:npt)-mu(1:npt)
+!bb=0.0e0
+!!xnep=xnep-floor(xnep)
+!call plotdatascatter(npt,xnep,res,yerr2,bb)
 
-open(unit=10,file="newdata.dat")
-do i=1,npt
-   write(10,'(4(F17.11,1X))') x(i),xnep(i),res(i),yerr(i)
-enddo
-close(10)
+!open(unit=10,file="newdata.dat")
+!do i=1,npt
+!   write(10,'(4(F17.11,1X))') x(i),xnep(i),res(i),yerr(i)
+!enddo
+!close(10)
 
 !close plotter
 call pgclos()
