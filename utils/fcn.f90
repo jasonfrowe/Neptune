@@ -6,5 +6,7 @@ integer :: npt,nfit,iflag
 real(double), dimension(npt) :: fvec
 real(double), dimension(nfit) :: solin
 
+
+
 return
 end subroutine fcn

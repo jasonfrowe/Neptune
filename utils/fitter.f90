@@ -82,6 +82,20 @@ do i=1,nfitp
    endif
 enddo
 
+!update pointers to share data with fcn
+npars2 => npars
+npord2 => npord
+ixo2 => ixo
+iyo2 => iyo
+pars2 => pars
+x2 => x
+y2 => y
+yerr2 => yerr
+xnep2 => xnep
+ynep2 => ynep
+isol2 => isol
+sol2 => sol
+
 !fvec contains model calculated with solin
 allocate(fvec(npt))
 !work arrays for lmdif1
