@@ -5,11 +5,11 @@ use fittingmod
 implicit none
 integer :: npt,i,j,iplast,nxpix,ipcurrent,nypix
 real(double) :: poly,tollm
-real(double), dimension(:) :: ax,ay
+real(double), dimension(:) :: xnep,ynep
 real(double), dimension(:,:) :: Kfac
 !targets for pointer reference to feed fcn
 integer, target :: npars,npord,ixo,iyo,nfitp
-real(double), dimension(:), target :: pars,x,y,yerr,xnep,ynep
+real(double), dimension(:), target :: pars,x,y,yerr,ax,ay
 integer, allocatable, dimension(:), target :: isol
 real(double), allocatable, dimension(:), target :: sol
 !lmdif1 variables
@@ -57,11 +57,11 @@ do i=1,npars
 enddo
 !add in X-pixel model fit.
 do i=1+npars,npars+nxpix*npord
-   sol(i)=0.0d0 !start with a straight line for a guess
+   sol(i)=1.0d0 !start with a straight line for a guess
 enddo
 !add in Y-pixel model fit
 do i=1+npars+nxpix*npord,npars+nxpix*npord+nypix*npord
-   sol(i)=0.0d0 !start with a straight line for a guess
+   sol(i)=1.0d0 !start with a straight line for a guess
 enddo
 
 !calculate how many variables are fit.
@@ -91,8 +91,8 @@ pars2 => pars
 x2 => x
 y2 => y
 yerr2 => yerr
-xnep2 => xnep
-ynep2 => ynep
+ax2 => ax
+ay2 => ay
 isol2 => isol
 sol2 => sol
 nfitp2 => nfitp
