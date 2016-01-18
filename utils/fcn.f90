@@ -43,6 +43,7 @@ r=0.0d0
 call pixelmodel(r,npars2,npord2,sol3,npt,x2,ixo2,ax2,iyo2,ay2)
 
 !1b. if Kernel is changing, then we need to update Cholosky stuff.
+!to be done later.
 
 !2. calculate Kernel-1 x r
 

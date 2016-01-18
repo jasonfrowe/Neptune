@@ -61,7 +61,7 @@ do i=1+npars,npars+nxpix*npord
 enddo
 !add in Y-pixel model fit
 do i=1+npars+nxpix*npord,npars+nxpix*npord+nypix*npord
-   sol(i)=1.0d0 !start with a straight line for a guess
+   sol(i)=0.0d0 !start with a straight line for a guess
 enddo
 
 !calculate how many variables are fit.
