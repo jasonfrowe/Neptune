@@ -34,7 +34,11 @@ BIN = /Users/rowe/Documents/Kepler/Neptune/bin/
 UTILS = utils/
 
 #Listing of programs to create.
-all: fitdata
+all: fitdatav2
+
+fitdatav2incl = precision.o
+fitdatav2: fitdatav2.f90 $(fitdatav2incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
 
 fitdataincl = precision.o fittingmod.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o lfit.o fitneptunepos.o minpack.o fcn.o pixelmodel.o
 fitdata: fitdata.f90 $(fitdataincl)

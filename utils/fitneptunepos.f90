@@ -20,9 +20,9 @@ interface !makes a plot of your data.
    subroutine plotdatascatter(npt,x,y,yerr,bb)
       use precision
       implicit none
-      integer, intent(in) :: npt
+      integer, intent(inout) :: npt
       real, dimension(:), intent(inout) :: bb
-      real(double), dimension(:), intent(in) :: x,y,yerr
+      real(double), dimension(:), intent(inout) :: x,y,yerr
    end subroutine plotdatascatter
 end interface
 

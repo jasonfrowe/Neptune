@@ -6,7 +6,8 @@ real(double) :: bpix
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: x,y,yerr,pars,alpha,yerr2,mu,&
    std,res,xpos,ypos,xnep,ynep,ax,ay
-real(double), allocatable, dimension(:,:) :: Kernel,Kfac,newKernelT,cov
+real(double), allocatable, dimension(:,:) :: Kernel,Kfac,newKernelT,cov,&
+   KernelZ
 character(80) :: filename
 
 !These are F90 interfaces that allow one to pass assumed sized arrays
@@ -34,9 +35,9 @@ interface !makes a plot of your data.
    subroutine plotdatascatter(npt,x,y,yerr,bb)
       use precision
       implicit none
-      integer, intent(in) :: npt
+      integer, intent(inout) :: npt
       real, dimension(:), intent(inout) :: bb
-      real(double), dimension(:), intent(in) :: x,y,yerr
+      real(double), dimension(:), intent(inout) :: x,y,yerr
    end subroutine plotdatascatter
 end interface
 interface !fits a straight line to data
@@ -84,13 +85,13 @@ interface !plots samples and uncertainties
    end subroutine plotsamples
 end interface
 interface
-   subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo, &
+   subroutine fitter(npt,KernelZ,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo, &
     ay,npord)
       use precision
       implicit none
       integer :: npt,npars,ixo,iyo,npord
       real(double), dimension(:) :: pars,x,y,yerr,xnep,ynep,ax,ay
-      real(double), dimension(:,:) :: Kfac
+      real(double), dimension(:,:) :: KernelZ,Kfac
    end subroutine fitter
 end interface
 interface
@@ -108,7 +109,7 @@ npars=4 !number of parameters used for model of the matrix
 allocate(pars(npars))  !model parameters for Kernel generation.
 pars(1)=1.0d0 !amp scale for exp
 pars(2)=0.146d0 !length scale for exp
-pars(3)=100.0 !second amp scale
+pars(3)=1.0 !second amp scale
 pars(4)=500.0 !second length scale
 
 !check that we have enough information from the commandline
@@ -142,16 +143,16 @@ call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
 
 !plot the data
 allocate(bb(4)) !contains plot boundaries
-bb=0.0e0 !tell code to generate scale for plot
-call plotdatascatter(npt,x,y,yerr,bb) !plot data
+!bb=0.0e0 !tell code to generate scale for plot
+!call plotdatascatter(npt,x,y,yerr,bb) !plot data
 
 !lets make a Kernel/co-variance for the Gaussian process
 allocate(Kernel(npt,npt)) !allocate space
 call makekernel(Kernel,npt,npt,x,x,npt,yerr,npars,pars) !create Kernel
 
 !call pgpage() !create fresh page for plotting
-!bpix=1.0e30 !cut off for bright pixels
-!call displaykernel(npt,npt,Kernel,bpix) !show what the Kernel looks like
+bpix=1.0e30 !cut off for bright pixels
+call displaykernel(npt,npt,Kernel,bpix) !show what the Kernel looks like
 
 !Cholesky factorization
 write(0,*) "Beginning Cholesky factorization"
@@ -182,16 +183,16 @@ if (info.ne.0) then !check for errors
    stop
 endif
 
-allocate(Kernel(npt,npt))
+allocate(KernelZ(npt,npt))
 allocate(yerr2(npt),mu(npt),std(npt))
 yerr2=0.0d0
-call makekernel(Kernel,npt,npt,x,x,npt,yerr2,npars,pars)
-mu=matmul(Kernel,alpha)
+call makekernel(KernelZ,npt,npt,x,x,npt,yerr2,npars,pars)
+mu=matmul(KernelZ,alpha)
 std=0.0d0
 
 !!uncomment to go after standard-deviations (slow....)
 !allocate(newKernelT(npt,npt))  !allocate space for transposed Kernel
-!newKernelT=transpose(Kernel) !create transpose
+!newKernelT=transpose(KernelZ) !create transpose
 !allocate(cov(npt,npt))
 !!make Kernel based on predicted dataset
 !call makekernel(cov,npt,npt,x,x,npt,yerr,npars,pars)
@@ -203,23 +204,23 @@ std=0.0d0
 !   write(0,*) "dpotrs info: ",info
 !   stop
 !endif
-!cov=cov-matmul(Kernel,newKernelT)
+!cov=cov-matmul(KernelZ,newKernelT)
 !do i=1,npt
 !   std(i)=sqrt(cov(i,i)) !use diagonals as estimate of standard deviation
 !enddo
 !deallocate(newKernelT)
 
-deallocate(Kernel)
-
-!call pgpage()!fresh page for plotting
-!bb=0.0e0 !rescale plot
-!call plotdata(npt,x,y,yerr,bb) !plot our original dataset
+call pgpage()!fresh page for plotting
+bb=0.0e0 !rescale plot
+write(0,*) "plotting.."
+call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
+write(0,*) "done plotting"
 call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
 
 !at this point.. everything looks good, so lets call the fitter.
 write(0,*) "Calling the fitter"
 npord=2 !order of polynomial to fit across pixel boundaries.
-call fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay,npord)
+call fitter(npt,KernelZ,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay,npord)
 
 !!lets have a look at X-position vs residuals
 !call pgpage()

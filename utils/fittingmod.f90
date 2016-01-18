@@ -5,4 +5,5 @@ module fittingmod
    real(double), dimension(:), pointer :: pars2,x2,y2,yerr2,ax2,ay2
    integer, dimension(:), pointer :: isol2
    real(double), dimension(:), pointer :: sol2
+   real(double), dimension(:,:), pointer :: Kfac2,KernelZ2
 end module fittingmod

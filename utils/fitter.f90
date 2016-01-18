@@ -1,17 +1,17 @@
-subroutine fitter(npt,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,iyo,ay, &
-   npord)
+subroutine fitter(npt,KernelZ,Kfac,npars,pars,x,y,yerr,xnep,ynep,ixo,ax,&
+   iyo,ay,npord)
 use precision
 use fittingmod
 implicit none
 integer :: npt,i,j,iplast,nxpix,ipcurrent,nypix
 real(double) :: poly,tollm
 real(double), dimension(:) :: xnep,ynep
-real(double), dimension(:,:) :: Kfac
 !targets for pointer reference to feed fcn
 integer, target :: npars,npord,ixo,iyo,nfitp
 real(double), dimension(:), target :: pars,x,y,yerr,ax,ay
 integer, allocatable, dimension(:), target :: isol
 real(double), allocatable, dimension(:), target :: sol
+real(double), dimension(:,:), target :: Kfac,KernelZ
 !lmdif1 variables
 integer :: nfit,info,lwa
 integer, allocatable, dimension(:) :: iwa
@@ -57,7 +57,7 @@ do i=1,npars
 enddo
 !add in X-pixel model fit.
 do i=1+npars,npars+nxpix*npord
-   sol(i)=1.0d0 !start with a straight line for a guess
+   sol(i)=0.0d0 !start with a straight line for a guess
 enddo
 !add in Y-pixel model fit
 do i=1+npars+nxpix*npord,npars+nxpix*npord+nypix*npord
@@ -96,14 +96,18 @@ ay2 => ay
 isol2 => isol
 sol2 => sol
 nfitp2 => nfitp
+Kfac2 => Kfac
+KernelZ2 => KernelZ
 
 !fvec contains model calculated with solin
 allocate(fvec(npt))
 !work arrays for lmdif1
 lwa=npt*nfit+5*nfit+npt
-allocate(wa(lwa))
+allocate(wa(lwa),iwa(nfit))
 
+write(0,*) "Starting lmdif1"
 tollm=1.0d-12 !tolerence for fitting
+!    lmdif1(fcn,m,  n,   x,    fvec,tol,  info,iwa,wa,lwa)
 call lmdif1(fcn,npt,nfit,solin,fvec,tollm,info,iwa,wa,lwa)
 write(0,*) "lmdif1 info: ",info
 
