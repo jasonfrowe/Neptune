@@ -102,6 +102,14 @@ interface
       real(double), dimension(:) :: x,xnep,ynep,ax,ay
    end subroutine fitneptunepos
 end interface
+interface
+   subroutine cutoutliers(npt,x,y,yerr,xpos,ypos,xnep,ynep)
+      use precision
+      implicit none
+      integer :: npt
+      real(double), dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep
+   end subroutine cutoutliers
+end interface
 
 !Here are the parameters that control the co-variance matrix and fitted
 !parameters
@@ -127,6 +135,8 @@ allocate(x(nmax),y(nmax),yerr(nmax),xpos(nmax),ypos(nmax),xnep(nmax),   &
 !it is assumed that the data is sorted wrt time.
 call getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep) !subroutine to read in data
 write(0,*) "Number of points read: ",npt !report how much data was read in
+
+call cutoutliers(npt,x,y,yerr,xpos,ypos,xnep,ynep)
 
 !open PGPLOT device
 call pgopen('?')  !'?' lets the user choose the device.

@@ -36,11 +36,11 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2
 
-fitdatav2incl = precision.o
+fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
 
-fitdataincl = precision.o fittingmod.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o lfit.o fitneptunepos.o minpack.o fcn.o pixelmodel.o
+fitdataincl = precision.o fittingmod.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o lfit.o fitneptunepos.o minpack.o fcn.o pixelmodel.o cutoutliers.o
 fitdata: fitdata.f90 $(fitdataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdata.f90 $(fitdataincl) $(LIBS) 
 
@@ -87,6 +87,10 @@ fittingmod.o: $(UTILS)fittingmod.f90
 	$(F90) $(FFLAGS) $(UTILS)fittingmod.f90
 pixelmodel.o: $(UTILS)pixelmodel.f90
 	$(F90) $(FFLAGS) $(UTILS)pixelmodel.f90
+findjumps.o: $(UTILS)findjumps.f90
+	$(F90) $(FFLAGS) $(UTILS)findjumps.f90
+cutoutliers.o: $(UTILS)cutoutliers.f90
+	$(F90) $(FFLAGS) $(UTILS)cutoutliers.f90
 
 # Removing object files
 .PHONY : clean

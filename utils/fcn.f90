@@ -56,8 +56,8 @@ close(11)
 
 !2. calculate ra = Kernel-1 x r
 allocate(ra(npt))
-ra(1:npt)=y2(1:npt)
-!ra(1:npt)=y2(1:npt)-r(1:npt)  !y-model
+!ra(1:npt)=y2(1:npt)
+ra(1:npt)=y2(1:npt)-r(1:npt)  !y-model
 nrhs=1
 call dpotrs('U',npt,nrhs,Kfac2,npt,ra,npt,info) !call LAPACK solver
 if (info.ne.0) then !check for errors
@@ -69,15 +69,18 @@ endif
 
 
 !3. break out terms of r x (Kernel-1 x r) into fvec
-!do i=1,npt
-!   fvec(i)=r(i)*ra(i)
-!enddo
+do i=1,npt
+   fvec(i)=sqrt(abs((y2(i)-r(i))*ra(i)))
+!   write(0,*) i,y2(i)-r(i),fvec(i)
+!   read(5,*)
+enddo
 !write(0,*) "ll: ",Sum(fvec(1:npt))
 
 !allocate(zeros(npt),Kernel(npt,npt))
 !zeros=0.0d0
 !call makekernel(Kernel,npt,npt,x2,x2,npt,zeros,npars2,pars2)
-fvec=y2(1:npt)-matmul(KernelZ2,ra)-r
+
+!fvec=y2(1:npt)-matmul(KernelZ2,ra)-r
 
 
 !4. profit
