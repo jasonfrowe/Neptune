@@ -19,19 +19,19 @@ Sxy=Sum(x(1:npt)*y(1:npt)/yerr2(1:npt))
 
 !15.2.6 from Numerical Recipes
 d=S*Sxx-Sx*Sx
-ans(1)=(Sxx*Sy-Sx*Sxy)/d
-ans(2)=(S*Sxy-Sx*Sy)/d
+ans(1)=(Sxx*Sy-Sx*Sxy)/d  !a   f=a+b*x
+ans(2)=(S*Sxy-Sx*Sy)/d    !b
 
 !15.2.9 from Numerical Recipes
 eans(1)=sqrt(Sxx/d)  !uncertainties in the fit
 eans(2)=sqrt(S/d)
 
-write(0,*) "ans1: ",ans(1),"+/-",eans(1)
-write(0,*) "ans2: ",ans(2),"+/-",eans(2)
+!write(0,*) "ans1: ",ans(1),"+/-",eans(1)
+!write(0,*) "ans2: ",ans(2),"+/-",eans(2)
 
 !estimate chi-squared
 chisq=Sum( ((y(1:npt)-ans(1)-ans(2)*x(1:npt))/yerr(1:npt))**2.0d0 )
-write(0,*) "Chisq: ",chisq,chisq/dble(npt)
+!write(0,*) "Chisq: ",chisq,chisq/dble(npt)
 
 return
 end subroutine

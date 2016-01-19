@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2
 
-fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o
+fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o medfit.o stdev.o fitline.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
 
@@ -91,6 +91,8 @@ findjumps.o: $(UTILS)findjumps.f90
 	$(F90) $(FFLAGS) $(UTILS)findjumps.f90
 cutoutliers.o: $(UTILS)cutoutliers.f90
 	$(F90) $(FFLAGS) $(UTILS)cutoutliers.f90
+medfit.o: $(UTILS)medfit.f
+	$(F90) $(FFLAGS) $(UTILS)medfit.f
 
 # Removing object files
 .PHONY : clean

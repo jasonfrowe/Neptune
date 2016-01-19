@@ -64,7 +64,7 @@ end interface
 npars=4 !number of parameters used for model of the matrix
 allocate(pars(npars))  !model parameters for Kernel generation.
 pars(1)=1.0d0 !amp scale for exp
-pars(2)=0.01d0 !length scale for exp
+pars(2)=0.02d0 !length scale for exp
 pars(3)=1.0 !second amp scale
 pars(4)=500.0 !second length scale
 
@@ -157,7 +157,7 @@ call findjumps(npt,x,res,yerr,npixel)
 
 open(unit=11,file="pixeltest.dat")
 do i=2,npt
-   write(11,'(3(F17.11,1X),I3)') x(i),y(i),res(i),npixel(i)-npixel(i-1)
+   write(11,'(4(F17.11,1X),I3)') x(i),y(i),yerr(i),res(i),npixel(i)!-npixel(i-1)
 enddo
 close(11)
 
