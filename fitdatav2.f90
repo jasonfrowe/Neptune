@@ -58,16 +58,15 @@ interface
       real(double), dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep
    end subroutine cutoutliers
 end interface
-
-!Here are the parameters that control the co-variance matrix and fitted
-!parameters
-npars=4 !number of parameters used for model of the matrix
-allocate(pars(npars))  !model parameters for Kernel generation.
-pars(1)=1.0d0 !amp scale for exp
-pars(2)=0.02d0 !length scale for exp
-pars(3)=1.0 !second amp scale
-pars(4)=500.0 !second length scale
-
+interface
+   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars)
+      use precision
+      implicit none
+      integer :: npt,npars
+      integer, dimension(:) :: npixel
+      real(double), dimension(:) :: x,y,yerr,pars
+   end subroutine fitterv2
+end interface
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -93,6 +92,15 @@ call pgopen('?')  !'?' lets the user choose the device.
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines
+
+!Here are the parameters that control the co-variance matrix and fitted
+!parameters
+npars=4 !number of parameters used for model of the matrix
+allocate(pars(npars))  !model parameters for Kernel generation.
+pars(1)=1.0d0 !amp scale for exp
+pars(2)=0.02d0 !length scale for exp
+pars(3)=1.0 !second amp scale
+pars(4)=500.0 !second length scale
 
 !lets make a Kernel/co-variance for the Gaussian process
 allocate(Kernel(npt,npt)) !allocate space
@@ -138,28 +146,37 @@ std=0.0d0
 allocate(res(npt))
 res(1:npt)=y(1:npt)-mu(1:npt)
 
-!plot the data
-allocate(bb(4)) !contains plot boundaries - type is real (not double!)
-bb=0.0e0 !tell code to generate scale for plot
-call plotdatascatter(npt,x,res,yerr,bb) !plot data
+!!plot the data
+!allocate(bb(4)) !contains plot boundaries - type is real (not double!)
+!bb=0.0e0 !tell code to generate scale for plot
+!call plotdatascatter(npt,x,res,yerr,bb) !plot data
 
 allocate(npixel(npt))
 call findjumps(npt,x,res,yerr,npixel)
 
-!res(1)=y(1)
-!do i=2,npt
-!   if(npixel(i)-npixel(i-1).ne.0)then
-!      res(i)=y(i)-res(i)
-!   else
-!      res(i)=y(i)
-!   endif
-!enddo
-
+!writing some data to check calculations
 open(unit=11,file="pixeltest.dat")
 do i=2,npt
-   write(11,'(4(F17.11,1X),I3)') x(i),y(i),yerr(i),res(i),npixel(i)!-npixel(i-1)
+   write(11,'(4(F17.11,1X),I3)') x(i),y(i),yerr(i),res(i),npixel(i)-npixel(i-1)
 enddo
 close(11)
+
+!clean up arrays no longer needed
+deallocate(KernelZ,res,mu,std,yerr2)
+
+!now we can go back to Kernel parameters to describe the rotation
+!modulation of Neptune
+
+!Here are the parameters that control the co-variance matrix and fitted
+!parameters
+npars=4 !number of parameters used for model of the matrix
+pars(1)=1.0d0 !amp scale for exp
+pars(2)=0.146d0 !length scale for exp
+pars(3)=1.0 !second amp scale
+pars(4)=500.0 !second length scale
+
+write(0,*) "Calling fitter"
+call fitterv2(npt,x,y,yerr,npixel,npars,pars)
 
 call pgend()
 
