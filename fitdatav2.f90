@@ -2,7 +2,7 @@ program fitdatav2
 !Version 2 to Neptune data cleaner.
 use precision
 implicit none
-integer :: iargc,nmax,npt,i,npars,info,nrhs
+integer :: iargc,nmax,npt,i,npars,info,nrhs,npord
 integer, allocatable, dimension(:) :: npixel
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
@@ -59,10 +59,10 @@ interface
    end subroutine cutoutliers
 end interface
 interface
-   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars)
+   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
       use precision
       implicit none
-      integer :: npt,npars
+      integer :: npt,npars,npord
       integer, dimension(:) :: npixel
       real(double), dimension(:) :: x,y,yerr,pars
    end subroutine fitterv2
@@ -176,7 +176,9 @@ pars(3)=1.0 !second amp scale
 pars(4)=500.0 !second length scale
 
 write(0,*) "Calling fitter"
-call fitterv2(npt,x,y,yerr,npixel,npars,pars)
+!polynomial order for segment fits
+npord=2
+call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
 
 call pgend()
 
