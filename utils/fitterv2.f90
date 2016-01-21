@@ -151,7 +151,7 @@ do k=1,nfit+1 !loop over all rows of p
          sol1(i)=sol(i)
       endif
    enddo
-   !call pixelmodelv2(sol1)
+   !call pixelmodelv2(npars,npix,npord,sol1,npt,x,npixel)
 enddo
 
 !call amoeba
@@ -159,3 +159,21 @@ enddo
 
 return
 end subroutine fitterv2
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function poly(x,nfit,ans)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+integer :: nfit
+real(double) :: x,poly
+real(double), dimension(nfit) :: ans
+integer :: i
+
+poly=ans(1)
+do i=2,nfit
+   poly=poly+ans(i)*x**dble(i-1)
+enddo
+
+return
+end function
