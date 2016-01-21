@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2
 
-fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o amoeba.o
+fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o amoeba.o pixelmodelv2.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
 
@@ -97,6 +97,8 @@ fitterv2.o: $(UTILS)fitterv2.f90
 	$(F90) $(FFLAGS) $(UTILS)fitterv2.f90
 amoeba.o: $(UTILS)amoeba.f
 	$(F90) $(FFLAGS) $(UTILS)amoeba.f
+pixelmodelv2.o: $(UTILS)pixelmodelv2.f90
+	$(F90) $(FFLAGS) $(UTILS)pixelmodelv2.f90
 
 # Removing object files
 .PHONY : clean

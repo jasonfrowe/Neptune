@@ -11,10 +11,10 @@ integer, allocatable, dimension(:) :: isol
 real(double), allocatable, dimension(:) :: alpha,sol
 real(double), allocatable, dimension(:,:) :: Kernel
 !local vars
-integer :: nrhs,info,nfit,npix,i,j,k
+integer :: nrhs,info,nfit,npix,i,j,k,ii
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: yerr2,mu,std,dpvar,sol1,     &
-   ymodel
+   ymodel,r
 real(double), allocatable, dimension(:,:) :: KernelZ,p
 
 interface !creates a co-variance matrix
@@ -42,6 +42,15 @@ interface !plots samples and uncertainties
       integer, intent(in) :: npt1
       real(double), dimension(:), intent(in) :: x1,mu,std
    end subroutine plotsamples
+end interface
+interface !pixel/jump model
+   subroutine pixelmodelv2(r,npars,npix,npord,sol,npt,x,npixel)
+      use precision
+      implicit none
+      integer :: npars,npix,npord,npt
+      integer, dimension(:) :: npixel
+      real(double), dimension(:) :: sol,x,r
+   end subroutine pixelmodelv2
 end interface
 
 !set up Kernel
@@ -139,7 +148,7 @@ enddo
 !write(0,*) "j: ",j
 
 !ymodel contains log(likelihood) evaluated for each row of p.
-allocate(ymodel(nfit+1),sol1(nfitp))
+allocate(ymodel(nfit+1),sol1(nfitp),r(npt))
 
 do k=1,nfit+1 !loop over all rows of p
    j=0 !counter
@@ -151,7 +160,14 @@ do k=1,nfit+1 !loop over all rows of p
          sol1(i)=sol(i)
       endif
    enddo
-   !call pixelmodelv2(npars,npix,npord,sol1,npt,x,npixel)
+   call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
+!   open(unit=11,file="pixeltest.dat")
+!      do ii=1,npt
+!         write(11,*) x(ii),y(ii),r(ii)
+!      enddo
+!   close(11)
+!   write(0,*) "pixel model done"
+!   read(5,*)
 enddo
 
 !call amoeba
