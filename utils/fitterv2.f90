@@ -1,21 +1,28 @@
 subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
 use precision
+use fittingmodv2
 implicit none
 !input vars
-integer :: npt,npars,npord
-integer, dimension(:) :: npixel
-real(double), dimension(:) :: x,y,yerr,pars
+integer, target :: npt,npars,npord
+integer, dimension(:), target :: npixel
+real(double), dimension(:), target :: x,y
+real(double), dimension(:) :: yerr,pars
 !shared vars
-integer :: nfitp
-integer, allocatable, dimension(:) :: isol
-real(double), allocatable, dimension(:) :: alpha,sol
-real(double), allocatable, dimension(:,:) :: Kernel
+integer, target :: nfitp
+integer, allocatable, dimension(:), target :: isol
+real(double), target :: logDK
+real(double), allocatable, dimension(:) :: alpha
+real(double), allocatable, dimension(:), target :: sol
+real(double), allocatable, dimension(:,:), target :: Kernel
 !local vars
-integer :: nrhs,info,nfit,npix,i,j,k,ii
+integer, target :: npix
+integer :: nrhs,info,nfit,i,j,k,ii,mp,np,iter
 real, allocatable, dimension(:) :: bb
+real(double) :: loglikelihood,lgll,funk,ftol
 real(double), allocatable, dimension(:) :: yerr2,mu,std,dpvar,sol1,     &
    ymodel,r
 real(double), allocatable, dimension(:,:) :: KernelZ,p
+external funk
 
 interface !creates a co-variance matrix
    subroutine makekernel(Kernel,npt1,npt2,x1,x2,npt,yerr,npars,pars)
@@ -67,6 +74,13 @@ if (info.ne.0) then !check for errors
    stop
 endif
 !at this point, Kernel has been factorized.
+
+!precompute determinant
+logDK=0.0d0
+do i=1,npt
+   logDK=logDK+Kernel(i,i)  !when factorized, determinant is sum of diagonal
+enddo
+logDK=2.0*logDK
 
 !pre-compute alpha
 allocate(alpha(npt))
@@ -168,13 +182,146 @@ do k=1,nfit+1 !loop over all rows of p
 !   close(11)
 !   write(0,*) "pixel model done"
 !   read(5,*)
+   lgll=loglikelihood(npt,x,y,r,Kernel,logDK)
+!   write(0,*) "lgll: ",lgll
+!   read(5,*)
+   ymodel(k)=-lgll !take negative, since we are 'minimizing'
 enddo
 
-!call amoeba
+!update pointers
+
+npt2 => npt
+nfitp2 => nfitp
+isol2 => isol
+sol2 => sol
+npars2 => npars
+npix2 => npix
+npord2 => npord
+x2 => x
+y2 => y
+npixel2 => npixel
+Kernel2 => Kernel
+logDK2 => logDK
+
+mp=nfit+1
+np=nfit
+ftol=1.0d-8
+write(0,*) "Start Amoeba.. "
+call amoeba(p,ymodel,mp,np,np,ftol,funk,iter)
 !call amoeba(p,y,mp,np,ndim,ftol,funk,iter)
+write(0,*) iter
+
+k=1
+j=0 !counter
+do i=1,nfitp
+   if(isol(i).ne.0)then
+      j=j+1
+      sol1(i)=p(k,j)
+   else
+      sol1(i)=sol(i)
+   endif
+enddo
+call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
+open(unit=11,file="pixeltest.dat")
+do ii=1,npt
+   write(11,*) x(ii),y(ii),r(ii)
+enddo
+close(11)
+write(0,*) "amoeba pixel model done"
+read(5,*)
+
 
 return
 end subroutine fitterv2
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function funk(p1)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+use fittingmodv2
+implicit none
+!import vars
+real(double) :: funk,loglikelihood
+real(double), dimension(npt2) :: p1
+!local vars
+integer i,j
+real(double), allocatable, dimension(:) :: sol3,r
+
+interface !pixel/jump model
+   subroutine pixelmodelv2(r,npars,npix,npord,sol,npt,x,npixel)
+      use precision
+      implicit none
+      integer :: npars,npix,npord,npt
+      integer, dimension(:) :: npixel
+      real(double), dimension(:) :: sol,x,r
+   end subroutine pixelmodelv2
+end interface
+
+
+!write(0,*) "Starting func.."
+
+allocate(sol3(nfitp2),r(npt2))
+
+j=0 !counter
+do i=1,nfitp2
+   if(isol2(i).ne.0)then
+      j=j+1
+      sol3(i)=p1(j)
+   else
+      sol3(i)=sol2(i)
+   endif
+enddo
+
+!write(0,*) "Call pixelmodel"
+call pixelmodelv2(r,npars2,npix2,npord2,sol3,npt2,x2,npixel2)
+!write(0,*) "Estimate lgll"
+funk=-loglikelihood(npt2,x2,y2,r,Kernel2,logDK2)
+
+return
+end
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function loglikelihood(npt,x,y,r,Kernel,logDK)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Kernel needs to factorized
+use precision
+implicit none
+!import vars
+integer :: npt
+real(double) :: logDK
+real(double), dimension(npt) :: x,y,r
+real(double), dimension(npt,npt) :: Kernel
+!local vars
+integer :: nrhs,info,i
+real(double) :: loglikelihood,log2pi
+real(double), parameter :: pi = 3.1415926535897932_8
+real(double), allocatable, dimension(:) :: ymr
+
+log2pi=log(2.0d0*pi)
+
+allocate(ymr(npt)) !observations minus model (y-r)
+ymr(1:npt) = y(1:npt)-r(1:npt)
+
+!solve for K**-1 * ymr
+nrhs=1
+!input ymr gets over written with K**-1 * ymr
+call dpotrs('U',npt,nrhs,Kernel,npt,ymr,npt,info) !call LAPACK solver
+if (info.ne.0) then !check for errors
+   write(0,*) "Solver failed in fcn.."
+   write(0,*) "dpotrs info: ",info
+   stop
+endif
+
+!calculate ymr * K**-1 * ymr
+loglikelihood=0.0
+do i=1,npt
+   loglikelihood=loglikelihood+(y(i)-r(i))*ymr(i)
+enddo
+loglikelihood=-0.5d0*(loglikelihood+logDK+dble(npt)*log2pi)
+
+
+return
+end
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 function poly(x,nfit,ans)

@@ -4,7 +4,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER iter,mp,ndim,np,NMAX,ITMAX
       REAL*8 ftol,p(mp,np),y(mp),funk,TINY
-      PARAMETER (NMAX=20,ITMAX=500,TINY=1.d-10)
+      PARAMETER (NMAX=200,ITMAX=500,TINY=1.d-10)
       character*80 tmpc
 C     Maximum allowed dimensions and function evaluations, and a small 
 C     number.
@@ -66,7 +66,10 @@ C     If returning, put best point and value in slot 1.
  14      continue
          return
       endif
-      if (iter.ge.ITMAX) return!pause "ITMAX exceeded in amoeba"
+      if (iter.ge.ITMAX) then
+         write(0,*) "ITMAX exceeded in amoeba"
+         return
+      endif
       iter=iter+2
 C     Begin a new iteration. First extrapolate by a factor −1 through 
 C     the face of the simplex across from the high point, i.e., reflect 
@@ -115,7 +118,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       INTEGER ihi,mp,ndim,np,NMAX
       REAL*8 fac,p(mp,np),psum(np),y(mp),funk
-      PARAMETER (NMAX=20)
+      PARAMETER (NMAX=200)
       EXTERNAL funk
 C     USES funk
 C     Extrapolates by a factor fac through the face of the simplex 
