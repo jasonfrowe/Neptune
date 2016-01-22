@@ -25,6 +25,12 @@ C     iter gives the number of function evaluations taken.
       REAL*8 rtol,sum,swap,ysave,ytry,psum(NMAX),amotry
       iter=0
 
+      if(ndim.gt.nmax)then
+         write(0,*) "ndim: ",ndim
+         write(0,*) "Error in amoeba: nmax < ndim"
+         return
+      endif
+
 C     Enter here when starting or have just overall contracted.
  1    do 12 n=1,ndim
          sum=0. !Recompute psum.

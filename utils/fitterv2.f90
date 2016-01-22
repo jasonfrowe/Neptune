@@ -1,35 +1,38 @@
 subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
 use precision
-use fittingmodv2
+!use fittingmodv2
 implicit none
 !input vars
-integer, target :: npt,npars,npord
-integer, dimension(:), target :: npixel
-real(double), dimension(:), target :: x,y
+integer :: npt,npars,npord
+integer, dimension(:) :: npixel
+real(double), dimension(:) :: x,y
 real(double), dimension(:) :: yerr,pars
 !shared vars
-integer, target :: nfitp
-integer, allocatable, dimension(:), target :: isol
-real(double), target :: logDK
+integer :: nfitp
+integer, allocatable, dimension(:) :: isol
+real(double) :: logDK
 real(double), allocatable, dimension(:) :: alpha
-real(double), allocatable, dimension(:), target :: sol
-real(double), allocatable, dimension(:,:), target :: Kernel
+real(double), allocatable, dimension(:) :: sol
+real(double), allocatable, dimension(:,:) :: Kernel
 !local vars
-integer, target :: npix
-integer :: nrhs,info,nfit,i,j,k,ii,mp,np,iter
+integer, allocatable, dimension(:) :: nbd,iwa
+integer :: nrhs,info,nfit,i,j,k,npix,iprint,isave(44),n,m
 real, allocatable, dimension(:) :: bb
-real(double) :: loglikelihood,lgll,funk,ftol
-real(double), allocatable, dimension(:) :: yerr2,mu,std,dpvar,sol1,     &
-   ymodel,r
-real(double), allocatable, dimension(:,:) :: KernelZ,p
-external funk
+real(double) :: loglikelihood,lgll,f,factr,pgtol,dsave(29)
+real(double), allocatable, dimension(:) :: yerr2,mu,std,ymodel,r,solin, &
+   l,u,g,wa,sol1
+logical :: lsave(4)
+
+real(double), allocatable, dimension(:,:) :: KernelZ
+character(60) :: task,csave
+!external funk
 
 interface !creates a co-variance matrix
    subroutine makekernel(Kernel,npt1,npt2,x1,x2,npt,yerr,npars,pars)
       use precision
       implicit none
-      integer, intent(in) :: npt1,npt2,npars,npt
-      real(double), dimension(:), intent(in) :: x1,x2,yerr,pars
+      integer, intent(inout) :: npt1,npt2,npars,npt
+      real(double), dimension(:), intent(inout) :: x1,x2,yerr,pars
       real(double), dimension(:,:), intent(inout) :: Kernel
    end subroutine makekernel
 end interface
@@ -129,107 +132,60 @@ do i=1,nfitp
    endif
 enddo
 
-!set up variations for amoeba
-allocate(dpvar(nfitp))
-do i=1,npars !for Kernel hyperparameters
-   dpvar(i)=0.1
-enddo
-do i=1+npars,npars+npix*npord !for segment model
-   dpvar(i)=0.1
-enddo
 
-!set up amoeba
-allocate(p(nfit+1,nfit))
+n=nfit !number of variables
+m=5 !corrections used in limited memory matrix
+!set up parameters for fit
+allocate(solin(nfit),sol1(nfitp))
 j=0
 do i=1,nfitp
    if(isol(i).ne.0)then
       j=j+1
-      p(nfit+1,j)=sol(i) !last row gets initial guss
+      solin(j)=sol(i) !pick off variables that will be fit
    endif
 enddo
-!write(0,*) "j: ",j
-do i=1,nfit
-   p(i,1:nfit)=p(nfit+1,1:nfit) !copy last row into other rows
-enddo
-!add dpvar to p
-j=0
-do i=1,nfitp
-   if(isol(i).ne.0)then
-      j=j+1
-      p(j,j)=p(j,j)+dpvar(i)
-   endif
-enddo
-!write(0,*) "j: ",j
+allocate(l(npt),u(npt),nbd(npt))
+nbd=0 !no bounds set
+allocate(g(npt))
+factr=1.0d+7
+pgtol=1.0d-5
+allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
+allocate ( iwa(3*n) )
+iprint=1  !diagonistic info to print to screen (set negative to quiet)
 
-!ymodel contains log(likelihood) evaluated for each row of p.
-allocate(ymodel(nfit+1),sol1(nfitp),r(npt))
+!vars for model
+allocate(r(npt))
 
-do k=1,nfit+1 !loop over all rows of p
-   j=0 !counter
-   do i=1,nfitp
-      if(isol(i).ne.0)then
-         j=j+1
-         sol1(i)=p(k,j)
-      else
-         sol1(i)=sol(i)
-      endif
-   enddo
+task = 'START'
+
+do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
+               task.eq.'START')
+
+   call setulb ( n, m, solin, l, u, nbd, f, g, factr, pgtol, &
+                       wa, iwa, task, iprint,&
+                       csave, lsave, isave, dsave )
+
+   write(0,'(A6,A6)') "task: ",task
+
+   if (task(1:2) .eq. 'FG') then
+      j=0
+      do i=1,nfitp
+         if(isol(i).ne.0)then
+            j=j+1
+            sol1(i)=solin(j)
+         else
+            sol1(i)=sol(i)
+         endif
+      enddo
    call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
-!   open(unit=11,file="pixeltest.dat")
-!      do ii=1,npt
-!         write(11,*) x(ii),y(ii),r(ii)
-!      enddo
-!   close(11)
-!   write(0,*) "pixel model done"
-!   read(5,*)
-   lgll=loglikelihood(npt,x,y,r,Kernel,logDK)
-!   write(0,*) "lgll: ",lgll
-!   read(5,*)
-   ymodel(k)=-lgll !take negative, since we are 'minimizing'
-enddo
+   f=-loglikelihood(npt,x,y,r,Kernel,logDK)
 
-!update pointers
 
-npt2 => npt
-nfitp2 => nfitp
-isol2 => isol
-sol2 => sol
-npars2 => npars
-npix2 => npix
-npord2 => npord
-x2 => x
-y2 => y
-npixel2 => npixel
-Kernel2 => Kernel
-logDK2 => logDK
-
-mp=nfit+1
-np=nfit
-ftol=1.0d-8
-write(0,*) "Start Amoeba.. "
-call amoeba(p,ymodel,mp,np,np,ftol,funk,iter)
-!call amoeba(p,y,mp,np,ndim,ftol,funk,iter)
-write(0,*) iter
-
-k=1
-j=0 !counter
-do i=1,nfitp
-   if(isol(i).ne.0)then
-      j=j+1
-      sol1(i)=p(k,j)
-   else
-      sol1(i)=sol(i)
    endif
-enddo
-call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
-open(unit=11,file="pixeltest.dat")
-do ii=1,npt
-   write(11,*) x(ii),y(ii),r(ii)
-enddo
-close(11)
-write(0,*) "amoeba pixel model done"
-read(5,*)
 
+
+   read(5,*)
+enddo
 
 return
 end subroutine fitterv2

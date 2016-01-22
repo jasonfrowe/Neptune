@@ -7,7 +7,7 @@ F77 = ifort
 OPT1 = -O3 -fast -parallel -ipo
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
-OPT2 = -heap-arrays 0
+OPT2 = -heap-arrays 0 
 #OPT2 = 
 FFLAGS = -c $(OPT1) $(OPT2)
 #FFLAGS = -c -O0 -g -CB -warn $(OPT2)
@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2
 
-fitdatav2incl = precision.o fittingmodv2.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o amoeba.o pixelmodelv2.o
+fitdatav2incl = precision.o fittingmodv2.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o pixelmodelv2.o lbfgsb.o linpack.o timer.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
 
@@ -101,6 +101,12 @@ pixelmodelv2.o: $(UTILS)pixelmodelv2.f90
 	$(F90) $(FFLAGS) $(UTILS)pixelmodelv2.f90
 fittingmodv2.o: $(UTILS)fittingmodv2.f90
 	$(F90) $(FFLAGS) $(UTILS)fittingmodv2.f90
+lbfgsb.o: $(UTILS)lbfgsb.f
+	$(F90) $(FFLAGS) $(UTILS)lbfgsb.f
+linpack.o: $(UTILS)linpack.f
+	$(F90) $(FFLAGS) $(UTILS)linpack.f
+timer.o: $(UTILS)timer.f
+	$(F90) $(FFLAGS) $(UTILS)timer.f
 
 # Removing object files
 .PHONY : clean

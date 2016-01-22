@@ -20,7 +20,7 @@ interface !reads in a three-column ascii space seperated file
       integer, intent(inout) :: npt,nmax
       real(double), dimension(:), intent(inout) :: x,y,yerr,xpos,ypos,  &
          xnep,ynep
-      character(80), intent(in) :: filename
+      character(80), intent(inout) :: filename
    end subroutine getdata
 end interface
 interface !makes a plot of your data.
@@ -45,8 +45,8 @@ interface !creates a co-variance matrix
    subroutine makekernel(Kernel,npt1,npt2,x1,x2,npt,yerr,npars,pars)
       use precision
       implicit none
-      integer, intent(in) :: npt1,npt2,npars,npt
-      real(double), dimension(:), intent(in) :: x1,x2,yerr,pars
+      integer, intent(inout) :: npt1,npt2,npars,npt
+      real(double), dimension(:), intent(inout) :: x1,x2,yerr,pars
       real(double), dimension(:,:), intent(inout) :: Kernel
    end subroutine makekernel
 end interface
@@ -170,10 +170,10 @@ deallocate(KernelZ,res,mu,std,yerr2)
 !Here are the parameters that control the co-variance matrix and fitted
 !parameters
 npars=4 !number of parameters used for model of the matrix
-pars(1)=1.0d0 !amp scale for exp
+pars(1)=0.2d0 !amp scale for exp
 pars(2)=0.146d0 !length scale for exp
-pars(3)=1.0 !second amp scale
-pars(4)=500.0 !second length scale
+pars(3)=0.2d0 !second amp scale
+pars(4)=500.0d0 !second length scale
 
 write(0,*) "Calling fitter"
 !polynomial order for segment fits

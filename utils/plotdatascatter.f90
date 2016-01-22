@@ -1,7 +1,7 @@
 subroutine plotdatascatter(npt,x,y,yerr,bb)
 use precision
 implicit none
-integer :: npt,i
+integer :: npt
 real :: diff
 real, allocatable, dimension(:) :: xp,yp,yperr
 real, dimension(:) :: bb
