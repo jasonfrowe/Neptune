@@ -1,6 +1,5 @@
 subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
 use precision
-!use fittingmodv2
 implicit none
 !input vars
 integer :: npt,npars,npord
@@ -16,16 +15,14 @@ real(double), allocatable, dimension(:) :: sol
 real(double), allocatable, dimension(:,:) :: Kernel
 !local vars
 integer, allocatable, dimension(:) :: nbd,iwa
-integer :: nrhs,info,nfit,i,j,k,npix,iprint,isave(44),n,m
+integer :: nrhs,info,nfit,i,j,k,npix,iprint,isave(44),n,m,ii,ikch
 real, allocatable, dimension(:) :: bb
 real(double) :: loglikelihood,lgll,f,factr,pgtol,dsave(29)
 real(double), allocatable, dimension(:) :: yerr2,mu,std,ymodel,r,solin, &
    l,u,g,wa,sol1
 logical :: lsave(4)
-
 real(double), allocatable, dimension(:,:) :: KernelZ
 character(60) :: task,csave
-!external funk
 
 interface !creates a co-variance matrix
    subroutine makekernel(Kernel,npt1,npt2,x1,x2,npt,yerr,npars,pars)
@@ -62,6 +59,18 @@ interface !pixel/jump model
       real(double), dimension(:) :: sol,x,r
    end subroutine pixelmodelv2
 end interface
+interface
+   subroutine gradient(nfit,f,g,nfitp,isol,sol,npars,pars,npix,npord,   &
+    npt,x,y,yerr,npixel,Kernel,logDK)
+      use precision
+      implicit none
+      integer :: nfit,nfitp,npars,npix,npord,npt
+      integer, dimension(:) :: isol,npixel
+      real(double) :: logDK,f
+      real(double), dimension(:) :: g,sol,x,y,yerr,pars
+      real(double), dimension(:,:) :: Kernel
+   end subroutine gradient
+end interface
 
 !set up Kernel
 !lets make a Kernel/co-variance for the Gaussian process
@@ -97,7 +106,7 @@ if (info.ne.0) then !check for errors
 endif
 !predictive means
 allocate(KernelZ(npt,npt),yerr2(npt),mu(npt),std(npt))
-yerr2=0.0d0
+yerr2=1.0d-15
 call makekernel(KernelZ,npt,npt,x,x,npt,yerr2,npars,pars)
 mu=matmul(KernelZ,alpha)
 std=0.0d0
@@ -119,6 +128,8 @@ do i=1,npars
    sol(i)=pars(i)
    isol(i)=0 !keep Kernel constant.
 enddo
+isol(1)=-1
+isol(2)=-1
 !add in X-pixel model fit.
 do i=1+npars,npars+npix*npord
    sol(i)=0.0d0 !start with a straight line for a guess
@@ -137,16 +148,22 @@ n=nfit !number of variables
 m=5 !corrections used in limited memory matrix
 !set up parameters for fit
 allocate(solin(nfit),sol1(nfitp))
+allocate(l(npt),u(npt),nbd(npt))
+
 j=0
 do i=1,nfitp
    if(isol(i).ne.0)then
       j=j+1
       solin(j)=sol(i) !pick off variables that will be fit
+      nbd(j)=0 !no bounds for line-segments
+      if(i.le.npars)then !set bounds for Kernel parameters
+         l(j)=1.0e-8
+         nbd(j)=1 !lower bounds for Kernel parameters
+      endif
    endif
 enddo
-allocate(l(npt),u(npt),nbd(npt))
-nbd=0 !no bounds set
-allocate(g(npt))
+
+allocate(g(nfit))
 factr=1.0d+7
 pgtol=1.0d-5
 allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
@@ -157,6 +174,7 @@ iprint=1  !diagonistic info to print to screen (set negative to quiet)
 allocate(r(npt))
 
 task = 'START'
+ikch=0
 
 do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
                task.eq.'START')
@@ -172,69 +190,62 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       do i=1,nfitp
          if(isol(i).ne.0)then
             j=j+1
-            sol1(i)=solin(j)
+            sol1(i)=solin(j)  !update parameters
+            if(i.le.npars)then !mark Kernel for update
+               if(abs(pars(i)-sol1(i)).gt.1.0e-15)then !are the kernel parameters different?
+                  ikch=1
+                  pars(i)=sol1(i) !Update Kernel parameters
+               endif
+            endif
          else
-            sol1(i)=sol(i)
+            sol1(i)=sol(i) !fill in from beginning solution.
          endif
       enddo
-   call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
-   f=-loglikelihood(npt,x,y,r,Kernel,logDK)
+      write(0,*) "pars1: ",pars(1),pars(2)
+      if(ikch.eq.1)then !if Kernel needs updating..
+         write(0,*) "Updating Kernel"
+         call makekernel(Kernel,npt,npt,x,x,npt,yerr,npars,pars)
+         call dpotrf('U',npt,Kernel,npt,info) !LAPACK routine for Cholesky
+         if (info.ne.0) then !check for errors
+            write(0,*) "Cholesky factorization failed for Lbfgsb"
+            write(0,*) "dpotrf info: ",info
+            stop
+         endif
+         logDK=0.0d0
+         do i=1,npt
+            logDK=logDK+Kernel(i,i)  !when factorized, determinant is sum of diagonal
+         enddo
+         logDK=2.0*logDK
+      endif
 
+      call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
+      f=-loglikelihood(npt,x,y,r,Kernel,logDK)
+      write(0,*) "F: ",f
+      call gradient(nfit,f,g,nfitp,isol,sol1,npars,pars,npix,npord,npt, &
+         x,y,yerr,npixel,Kernel,logDK)
+      write(0,*) "G1: ",g(1)
+
+      open(unit=11,file="pixeltest.dat")
+      do ii=1,npt
+         write(11,*) x(ii),y(ii),r(ii)
+      enddo
+      close(11)
+
+      write(0,*) "pars: ",pars(1),pars(2)
 
    endif
 
-
-   read(5,*)
+!   read(5,*)
+   ikch=0
 enddo
+
+sol=sol1 !update solution.
+
+write(0,*) "Hey.. we made it!"
 
 return
 end subroutine fitterv2
 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-function funk(p1)
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-use precision
-use fittingmodv2
-implicit none
-!import vars
-real(double) :: funk,loglikelihood
-real(double), dimension(npt2) :: p1
-!local vars
-integer i,j
-real(double), allocatable, dimension(:) :: sol3,r
-
-interface !pixel/jump model
-   subroutine pixelmodelv2(r,npars,npix,npord,sol,npt,x,npixel)
-      use precision
-      implicit none
-      integer :: npars,npix,npord,npt
-      integer, dimension(:) :: npixel
-      real(double), dimension(:) :: sol,x,r
-   end subroutine pixelmodelv2
-end interface
-
-
-!write(0,*) "Starting func.."
-
-allocate(sol3(nfitp2),r(npt2))
-
-j=0 !counter
-do i=1,nfitp2
-   if(isol2(i).ne.0)then
-      j=j+1
-      sol3(i)=p1(j)
-   else
-      sol3(i)=sol2(i)
-   endif
-enddo
-
-!write(0,*) "Call pixelmodel"
-call pixelmodelv2(r,npars2,npix2,npord2,sol3,npt2,x2,npixel2)
-!write(0,*) "Estimate lgll"
-funk=-loglikelihood(npt2,x2,y2,r,Kernel2,logDK2)
-
-return
-end
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 function loglikelihood(npt,x,y,r,Kernel,logDK)
