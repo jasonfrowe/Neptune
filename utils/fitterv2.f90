@@ -128,8 +128,8 @@ do i=1,npars
    sol(i)=pars(i)
    isol(i)=0 !keep Kernel constant.
 enddo
-isol(1)=-1
-isol(2)=-1
+isol(1)=-1 !allow amplitude hyperparameter to change.
+isol(3)=-1
 !add in X-pixel model fit.
 do i=1+npars,npars+npix*npord
    sol(i)=0.0d0 !start with a straight line for a guess
@@ -201,7 +201,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
             sol1(i)=sol(i) !fill in from beginning solution.
          endif
       enddo
-      write(0,*) "pars1: ",pars(1),pars(2)
+!      write(0,*) "pars1: ",pars(1),pars(3)
       if(ikch.eq.1)then !if Kernel needs updating..
          write(0,*) "Updating Kernel"
          call makekernel(Kernel,npt,npt,x,x,npt,yerr,npars,pars)
@@ -231,7 +231,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       enddo
       close(11)
 
-      write(0,*) "pars: ",pars(1),pars(2)
+      write(0,*) "pars: ",pars(1),pars(3)
 
    endif
 

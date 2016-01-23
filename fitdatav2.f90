@@ -171,8 +171,8 @@ deallocate(KernelZ,res,mu,std,yerr2)
 !parameters
 npars=4 !number of parameters used for model of the matrix
 pars(1)=0.02d0 !amp scale for exp
-pars(2)=0.146d0 !length scale for exp
-pars(3)=0.0d0 !second amp scale
+pars(2)=0.02856!0.146d0 !length scale for exp
+pars(3)=0.002d0 !second amp scale
 pars(4)=500.0d0 !second length scale
 
 write(0,*) "Calling fitter"
