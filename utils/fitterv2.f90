@@ -19,7 +19,7 @@ integer :: nrhs,info,nfit,i,j,k,npix,iprint,isave(44),n,m,ii,ikch
 real, allocatable, dimension(:) :: bb
 real(double) :: loglikelihood,lgll,f,factr,pgtol,dsave(29)
 real(double), allocatable, dimension(:) :: yerr2,mu,std,ymodel,r,solin, &
-   l,u,g,wa,sol1
+   l,u,g,wa,sol1,sp
 logical :: lsave(4)
 real(double), allocatable, dimension(:,:) :: KernelZ
 character(60) :: task,csave
@@ -71,6 +71,15 @@ interface
       real(double), dimension(:,:) :: Kernel
    end subroutine gradient
 end interface
+interface
+   subroutine spcor(npt,sp,x,r,npixel)
+      use precision
+      implicit none
+      integer :: npt
+      integer, dimension(:) :: npixel
+      real(double), dimension(:) :: x,r,sp
+   end subroutine spcor
+end interface
 
 !set up Kernel
 !lets make a Kernel/co-variance for the Gaussian process
@@ -117,6 +126,12 @@ write(0,*) "plotting.."
 call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
 write(0,*) "done plotting"
 call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
+
+open(unit=11,file='predict.dat')
+do i=1,npt
+   write(11,*) x(i),mu(i)
+enddo
+close(11)
 
 !number of jumps detected - sets number of parameters for segment fit
 npix=maxval(npixel(1:npt))
@@ -171,7 +186,7 @@ allocate ( iwa(3*n) )
 iprint=1  !diagonistic info to print to screen (set negative to quiet)
 
 !vars for model
-allocate(r(npt))
+allocate(r(npt),sp(npt))
 
 task = 'START'
 ikch=0
@@ -225,9 +240,11 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
          x,y,yerr,npixel,Kernel,logDK)
       write(0,*) "G1: ",g(1)
 
+      call spcor(npt,sp,x,r,npixel)
+
       open(unit=11,file="pixeltest.dat")
       do ii=1,npt
-         write(11,*) x(ii),y(ii),r(ii)
+         write(11,'(4(F17.11,1X))') x(ii),y(ii),r(ii),sp(ii)
       enddo
       close(11)
 

@@ -155,11 +155,11 @@ allocate(npixel(npt))
 call findjumps(npt,x,res,yerr,npixel)
 
 !writing some data to check calculations
-open(unit=11,file="pixeltest.dat")
-do i=2,npt
-   write(11,'(4(F17.11,1X),I3)') x(i),y(i),yerr(i),res(i),npixel(i)-npixel(i-1)
-enddo
-close(11)
+!open(unit=11,file="pixeltest.dat")
+!do i=2,npt
+!   write(11,'(4(F17.11,1X),I3)') x(i),y(i),yerr(i),res(i),npixel(i)-npixel(i-1)
+!enddo
+!close(11)
 
 !clean up arrays no longer needed
 deallocate(KernelZ,res,mu,std,yerr2)
