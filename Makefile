@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -fast -parallel -ipo
+OPT1 = -O3 -fast -parallel -ipo -openmp
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 = -heap-arrays 0 

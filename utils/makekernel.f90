@@ -20,6 +20,7 @@ a2l=pars(3)*pars(3)
 twol2l=pars(4)*pars(4)
 
 do i=1,npt1
+   !$OMP PARALLEL DO
    do j=1,npt2
       !exponential part
       Kernel(i,j)=Kernel(i,j)+a2*exp(-(x1(i)-x2(j))*(x1(i)-x2(j))/twol2)
@@ -34,6 +35,7 @@ do i=1,npt1
          endif
       endif
    enddo
+   !$OMP END PARALLEL DO
 enddo
 
 if(minval(Kernel(1:npt1,1:npt2)).lt.0.0)then
