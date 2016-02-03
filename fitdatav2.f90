@@ -23,15 +23,15 @@ interface !reads in a three-column ascii space seperated file
       character(80), intent(inout) :: filename
    end subroutine getdata
 end interface
-interface !makes a plot of your data.
-   subroutine plotdatascatter(npt,x,y,yerr,bb)
-      use precision
-      implicit none
-      integer, intent(inout) :: npt
-      real, dimension(:), intent(inout) :: bb
-      real(double), dimension(:), intent(inout) :: x,y,yerr
-   end subroutine plotdatascatter
-end interface
+!interface !makes a plot of your data.
+!   subroutine plotdatascatter(npt,x,y,yerr,bb)
+!      use precision
+!      implicit none
+!      integer, intent(inout) :: npt
+!      real, dimension(:), intent(inout) :: bb
+!      real(double), dimension(:), intent(inout) :: x,y,yerr
+!   end subroutine plotdatascatter
+!end interface
 interface
    subroutine findjumps(npt,x,y,yerr,npixel)
       use precision
@@ -88,10 +88,10 @@ write(0,*) "Number of points read: ",npt !report how much data was read in
 call cutoutliers(npt,x,y,yerr,xpos,ypos,xnep,ynep)
 
 !open PGPLOT device
-call pgopen('/xserve')  !'?' lets the user choose the device.
-call PGPAP (8.0 ,1.0) !use a square 8" across
-call pgpage() !create a fresh page
-call pgslw(3) !thicker lines
+!call pgopen('/xserve')  !'?' lets the user choose the device.
+!call PGPAP (8.0 ,1.0) !use a square 8" across
+!call pgpage() !create a fresh page
+!call pgslw(3) !thicker lines
 
 !Here are the parameters that control the co-variance matrix and fitted
 !parameters
@@ -183,7 +183,7 @@ call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
 
 call exportdata(npt,x,y,yerr,r,sp,xpos,ypos,xnep,ynep)
 
-call pgend()
+!call pgend()
 
 end program fitdatav2
 

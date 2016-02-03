@@ -36,9 +36,9 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2
 
-fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o pixelmodelv2.o lbfgsb.o linpack.o timer.o gradient.o spcor.o spline.o exportdata.o
+fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
+	$(F90) -mkl $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
 
 fitdataincl = precision.o fittingmod.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o lfit.o fitneptunepos.o minpack.o fcn.o pixelmodel.o cutoutliers.o
 fitdata: fitdata.f90 $(fitdataincl)

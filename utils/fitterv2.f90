@@ -33,23 +33,23 @@ interface !creates a co-variance matrix
       real(double), dimension(:,:), intent(inout) :: Kernel
    end subroutine makekernel
 end interface
-interface !makes a plot of your data.
-   subroutine plotdatascatter(npt,x,y,yerr,bb)
-      use precision
-      implicit none
-      integer, intent(inout) :: npt
-      real, dimension(:), intent(inout) :: bb
-      real(double), dimension(:), intent(inout) :: x,y,yerr
-   end subroutine plotdatascatter
-end interface
-interface !plots samples and uncertainties
-   subroutine plotsamples(npt1,x1,mu,std)
-      use precision
-      implicit none
-      integer, intent(in) :: npt1
-      real(double), dimension(:), intent(in) :: x1,mu,std
-   end subroutine plotsamples
-end interface
+!interface !makes a plot of your data.
+!   subroutine plotdatascatter(npt,x,y,yerr,bb)
+!      use precision
+!      implicit none
+!      integer, intent(inout) :: npt
+!      real, dimension(:), intent(inout) :: bb
+!      real(double), dimension(:), intent(inout) :: x,y,yerr
+!   end subroutine plotdatascatter
+!end interface
+!interface !plots samples and uncertainties
+!   subroutine plotsamples(npt1,x1,mu,std)
+!      use precision
+!      implicit none
+!      integer, intent(in) :: npt1
+!      real(double), dimension(:), intent(in) :: x1,mu,std
+!   end subroutine plotsamples
+!end interface
 interface !pixel/jump model
    subroutine pixelmodelv2(r,npars,npix,npord,sol,npt,x,npixel)
       use precision
@@ -122,10 +122,10 @@ std=0.0d0
 !plot the prediction
 allocate(bb(4))
 bb=0.0e0 !rescale plot
-write(0,*) "plotting.."
-call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
-write(0,*) "done plotting"
-call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
+!write(0,*) "plotting.."
+!call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
+!write(0,*) "done plotting"
+!call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
 
 open(unit=11,file='predict.dat')
 do i=1,npt
