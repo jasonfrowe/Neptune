@@ -1,10 +1,10 @@
-subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
+subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
 use precision
 implicit none
 !input vars
 integer :: npt,npars,npord
 integer, dimension(:) :: npixel
-real(double), dimension(:) :: x,y
+real(double), dimension(:) :: x,y,r,sp
 real(double), dimension(:) :: yerr,pars
 !shared vars
 integer :: nfitp
@@ -18,8 +18,8 @@ integer, allocatable, dimension(:) :: nbd,iwa
 integer :: nrhs,info,nfit,i,j,k,npix,iprint,isave(44),n,m,ii,ikch
 real, allocatable, dimension(:) :: bb
 real(double) :: loglikelihood,lgll,f,factr,pgtol,dsave(29)
-real(double), allocatable, dimension(:) :: yerr2,mu,std,ymodel,r,solin, &
-   l,u,g,wa,sol1,sp
+real(double), allocatable, dimension(:) :: yerr2,mu,std,ymodel,solin,   &
+   l,u,g,wa,sol1
 logical :: lsave(4)
 real(double), allocatable, dimension(:,:) :: KernelZ
 character(60) :: task,csave
@@ -183,10 +183,10 @@ factr=1.0d+7
 pgtol=1.0d-5
 allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
 allocate ( iwa(3*n) )
-iprint=1  !diagonistic info to print to screen (set negative to quiet)
+iprint=-1  !diagonistic info to print to screen (set negative to quiet)
 
 !vars for model
-allocate(r(npt),sp(npt))
+!allocate(r(npt),sp(npt))
 
 task = 'START'
 ikch=0

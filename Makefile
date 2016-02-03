@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2
 
-fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o pixelmodelv2.o lbfgsb.o linpack.o timer.o gradient.o spcor.o spline.o
+fitdatav2incl = precision.o getdata.o plotdatascatter.o findjumps.o makekernel.o lapack.o blas.o cutoutliers.o stdev.o fitline.o fitterv2.o plotsamples.o pixelmodelv2.o lbfgsb.o linpack.o timer.o gradient.o spcor.o spline.o exportdata.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl) $(LIBS)
 
@@ -113,6 +113,8 @@ spline.o: $(UTILS)spline.f
 	$(F90) $(FFLAGS) $(UTILS)spline.f
 spcor.o: $(UTILS)spcor.f90
 	$(F90) $(FFLAGS) $(UTILS)spcor.f90
+exportdata.o: $(UTILS)exportdata.f90
+	$(F90) $(FFLAGS) $(UTILS)exportdata.f90
 
 # Removing object files
 .PHONY : clean

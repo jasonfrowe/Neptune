@@ -6,7 +6,7 @@ integer :: iargc,nmax,npt,i,npars,info,nrhs,npord
 integer, allocatable, dimension(:) :: npixel
 real, allocatable, dimension(:) :: bb
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
-   pars,alpha,yerr2,mu,std,res
+   pars,alpha,yerr2,mu,std,res,r,sp
 real(double), allocatable, dimension(:,:) :: Kernel,Kfac,KernelZ
 
 character(80) :: filename
@@ -59,12 +59,12 @@ interface
    end subroutine cutoutliers
 end interface
 interface
-   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
+   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
       use precision
       implicit none
       integer :: npt,npars,npord
       integer, dimension(:) :: npixel
-      real(double), dimension(:) :: x,y,yerr,pars
+      real(double), dimension(:) :: x,y,yerr,pars,r,sp
    end subroutine fitterv2
 end interface
 
@@ -88,7 +88,7 @@ write(0,*) "Number of points read: ",npt !report how much data was read in
 call cutoutliers(npt,x,y,yerr,xpos,ypos,xnep,ynep)
 
 !open PGPLOT device
-call pgopen('?')  !'?' lets the user choose the device.
+call pgopen('/xserve')  !'?' lets the user choose the device.
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines
@@ -178,8 +178,12 @@ pars(4)=500.0d0 !second length scale
 write(0,*) "Calling fitter"
 !polynomial order for segment fits
 npord=2
-call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord)
+allocate(r(npt),sp(npt))
+call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
+
+call exportdata(npt,x,y,yerr,r,sp,xpos,ypos,xnep,ynep)
 
 call pgend()
 
 end program fitdatav2
+
