@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -fast -parallel -ipo -openmp
+OPT1 = -O3 -parallel -ipo -openmp -mkl
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 = -heap-arrays 0 
@@ -34,11 +34,15 @@ BIN = /Users/rowe/Documents/Kepler/Neptune/bin/
 UTILS = utils/
 
 #Listing of programs to create.
-all: fitdatav2
+all: fitdatav2 pixelfit
+
+pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o
+pixelfit: pixelfit.f90 $(pixelfitincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfit.f90 $(pixelfitincl) $(LIBS)
 
 fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
-	$(F90) -mkl $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
 
 fitdataincl = precision.o fittingmod.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o lfit.o fitneptunepos.o minpack.o fcn.o pixelmodel.o cutoutliers.o
 fitdata: fitdata.f90 $(fitdataincl)
