@@ -779,9 +779,12 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
 c     Generate the search direction d:=z-x.
 
+!$OMP PARALLEL DO
       do 40 i = 1, n
          d(i) = z(i) - x(i)
   40  continue
+!$OMP END PARALLEL DO
+
       call timer(cpu1) 
  666  continue
       call lnsrlb(n,l,u,nbd,x,f,fold,gd,gdold,g,d,r,t,z,stp,dnorm,
@@ -859,9 +862,11 @@ c           i.e., to issue a warning if iback>10 in the line search.
 
 c     Compute d=newx-oldx, r=newg-oldg, rr=y'y and dr=y's.
  
+!$OMP PARALLEL DO
       do 42 i = 1, n
          r(i) = g(i) - r(i)
   42  continue
+!$OMP END PARALLEL DO
       rr = ddot(n,r,1,r,1)
       if (stp .eq. one) then  
          dr = gd - gdold
@@ -1176,6 +1181,7 @@ c                   [ -L*D^(-1/2)   J ] [ p2 ]   [ v2 ].
 
 c       solve Jp2=v2+LD^(-1)v1.
       p(col + 1) = v(col + 1)
+!$OMP PARALLEL DO PRIVATE(i2,sum,k)
       do 20 i = 2, col
          i2 = col + i
          sum = 0.0d0
@@ -1184,14 +1190,17 @@ c       solve Jp2=v2+LD^(-1)v1.
   10     continue
          p(i2) = v(i2) + sum
   20  continue  
+!$OMP END PARALLEL DO
 c     Solve the triangular system
       call dtrsl(wt,m,col,p(col+1),11,info)
       if (info .ne. 0) return
  
 c       solve D^(1/2)p1=v1.
+!$OMP PARALLEL DO
       do 30 i = 1, col
          p(i) = v(i)/sqrt(sy(i,i))
-  30  continue 
+  30  continue
+!$OMP END PARALLEL DO
  
 c     PART II: solve [ -D^(1/2)   D^(-1/2)*L'  ] [ p1 ] = [ p1 ]
 c                    [  0         J'           ] [ p2 ]   [ p2 ]. 
@@ -1202,9 +1211,12 @@ c       solve J^Tp2=p2.
  
 c       compute p1=-D^(-1/2)(p1-D^(-1/2)L'p2)
 c                 =-D^(-1/2)p1+D^(-1)L'p2.  
+!$OMP PARALLEL DO
       do 40 i = 1, col
          p(i) = -p(i)/sqrt(sy(i,i))
   40  continue
+!$OMP END PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(sum,k)
       do 60 i = 1, col
          sum = 0.d0
          do 50 k = i + 1, col
@@ -1212,6 +1224,7 @@ c                 =-D^(-1/2)p1+D^(-1)L'p2.
   50     continue
          p(i) = p(i) + sum
   60  continue
+!$OMP END PARALLEL DO
 
       return
 
@@ -1436,9 +1449,11 @@ c       the derivative f1 and the vector p = W'd (for theta = 1).
 
 c     We set p to zero and build it up as we determine d.
 
+!$OMP PARALLEL DO
       do 20 i = 1, col2
          p(i) = zero
-  20  continue 
+  20  continue
+!$OMP END PARALLEL DO
 
 c     In the following loop we determine for each variable its bound
 c        status and its breakpoint, and update p accordingly.
@@ -1527,10 +1542,12 @@ c                  is a zero vector, return with the initial xcp as GCP.
       endif    
  
 c     Initialize c = W'(xcp - x) = 0.
-  
+
+!$OMP PARALLEL DO
       do 60 j = 1, col2
          c(j) = zero
-  60  continue 
+  60  continue
+!$OMP END PARALLEL DO
  
 c     Initialize derivative f2.
  

@@ -1,8 +1,8 @@
-subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep)
+subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
 use precision
 implicit none
 integer :: npt,nmax,nunit,filestatus,i,npix
-real(double) :: minx,mean,time,flux,dumr,sky,xp,yp,xn,yn
+real(double) :: time,flux,dumr,sky,xp,yp,xn,yn,minx,mean
 real(double), dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep
 character(80) :: filename,dumc
 

@@ -117,8 +117,13 @@ endif
 allocate(KernelZ(npt,npt),yerr2(npt),mu(npt),std(npt))
 yerr2=1.0d-15
 call makekernel(KernelZ,npt,npt,x,x,npt,yerr2,npars,pars)
+!$OMP PARALLEL
+!$OMP WORKSHARE
 mu=matmul(KernelZ,alpha)
 std=0.0d0
+!$OMP END WORKSHARE
+!$OMP END PARALLEL
+
 !plot the prediction
 allocate(bb(4))
 bb=0.0e0 !rescale plot
@@ -284,7 +289,11 @@ real(double), allocatable, dimension(:) :: ymr
 log2pi=log(2.0d0*pi)
 
 allocate(ymr(npt)) !observations minus model (y-r)
+!$OMP PARALLEL
+!$OMP WORKSHARE
 ymr(1:npt) = y(1:npt)-r(1:npt)
+!$OMP END WORKSHARE
+!$OMP END PARALLEL
 
 !solve for K**-1 * ymr
 nrhs=1
@@ -298,9 +307,11 @@ endif
 
 !calculate ymr * K**-1 * ymr
 loglikelihood=0.0
+!$OMP PARALLEL DO REDUCTION(+:loglikelihood)
 do i=1,npt
    loglikelihood=loglikelihood+(y(i)-r(i))*ymr(i)
 enddo
+!$OMP END PARALLEL DO
 loglikelihood=-0.5d0*(loglikelihood+logDK+dble(npt)*log2pi)
 
 

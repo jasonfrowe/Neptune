@@ -5,6 +5,7 @@ implicit none
 integer :: iargc,nmax,npt,i,npars,info,nrhs,npord
 integer, allocatable, dimension(:) :: npixel
 real, allocatable, dimension(:) :: bb
+real(double) :: minx,mean
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
    pars,alpha,yerr2,mu,std,res,r,sp
 real(double), allocatable, dimension(:,:) :: Kernel,Kfac,KernelZ
@@ -14,10 +15,11 @@ character(80) :: filename
 !These are F90 interfaces that allow one to pass assumed sized arrays
 !to subroutines.
 interface !reads in a three-column ascii space seperated file
-   subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep)
+   subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
       use precision
       implicit none
       integer, intent(inout) :: npt,nmax
+      real(double), intent(inout) :: minx,mean
       real(double), dimension(:), intent(inout) :: x,y,yerr,xpos,ypos,  &
          xnep,ynep
       character(80), intent(inout) :: filename
@@ -81,7 +83,8 @@ nmax=80000 !initial guess for number of datapoints.
 allocate(x(nmax),y(nmax),yerr(nmax),xpos(nmax),ypos(nmax),xnep(nmax),   &
    ynep(nmax)) !allocate arrays
 !it is assumed that the data is sorted wrt time.
-call getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep) !subroutine to read in data
+!subroutine to read in data
+call getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
 write(0,*) "Number of points read: ",npt !report how much data was read in
 
 !cut out crap.
@@ -140,11 +143,14 @@ allocate(KernelZ(npt,npt))
 allocate(yerr2(npt),mu(npt),std(npt))
 yerr2=0.0d0
 call makekernel(KernelZ,npt,npt,x,x,npt,yerr2,npars,pars)
+allocate(res(npt))
+!$OMP PARALLEL
+!$OMP WORKSHARE
 mu=matmul(KernelZ,alpha)
 std=0.0d0
-
-allocate(res(npt))
 res(1:npt)=y(1:npt)-mu(1:npt)
+!$OMP END WORKSHARE
+!$OMP END PARALLEL
 
 !!plot the data
 !allocate(bb(4)) !contains plot boundaries - type is real (not double!)
@@ -181,7 +187,7 @@ npord=2
 allocate(r(npt),sp(npt))
 call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
 
-call exportdata(npt,x,y,yerr,r,sp,xpos,ypos,xnep,ynep)
+call exportdata(npt,x,y,yerr,r,sp,xpos,ypos,xnep,ynep,minx,mean)
 
 !call pgend()
 

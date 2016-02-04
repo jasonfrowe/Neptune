@@ -13,7 +13,7 @@ threshold=0.0005
 allocate(icut(npt))
 icut=0 !intialize to keep all data
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(vp,vm)
 do i=2,npt-1
    vp=y(i)-y(i+1)
    vm=y(i)-y(i-1)

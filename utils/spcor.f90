@@ -30,9 +30,11 @@ allocate(rp2(np))
 call spline(xp,rp,np,1.d30,1.d30,rp2)
 
 !calculate interpolated spline values
+!$OMP PARALLEL DO
 do i=1,npt
    call splint(xp,rp,rp2,np,x(i),sp(i))
 enddo
+!$OMP END PARALLEL DO
 
 return
 end
