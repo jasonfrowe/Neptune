@@ -32,8 +32,8 @@ interface
    subroutine fftspec(npt,time,flux)
       use precision
       implicit none
-      integer :: npt
-      real(double), dimension(:) :: time,flux
+      integer, intent(inout) :: npt
+      real(double), dimension(:), intent(inout) :: time,flux
    end subroutine fftspec
 end interface
 
