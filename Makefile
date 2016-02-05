@@ -34,7 +34,11 @@ BIN = /Users/rowe/Documents/Kepler/Neptune/bin/
 UTILS = utils/
 
 #Listing of programs to create.
-all: fitdatav2 pixelfit
+all: fitdatav2 pixelfit fftpow
+
+fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o spline.o rqsort.o
+fftpow: fftpow.f90 $(fftpowincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
 pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.o fitneptunepos.o lfit.o
 pixelfit: pixelfit.f90 $(pixelfitincl)
@@ -119,6 +123,10 @@ spcor.o: $(UTILS)spcor.f90
 	$(F90) $(FFLAGS) $(UTILS)spcor.f90
 exportdata.o: $(UTILS)exportdata.f90
 	$(F90) $(FFLAGS) $(UTILS)exportdata.f90
+readfftdata.o: $(UTILS)readfftdata.f90
+	$(F90) $(FFLAGS) $(UTILS)readfftdata.f90
+fftspec.o: $(UTILS)fftspec.f90
+	$(F90) $(FFLAGS) $(UTILS)fftspec.f90
 
 # Removing object files
 .PHONY : clean

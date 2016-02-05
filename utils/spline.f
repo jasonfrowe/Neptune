@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER m,n,NN
       REAL*8 x1a(m),x2a(n),y2a(m,n),ya(m,n)
-      PARAMETER (NN=10000) !Maximum expected value of n and m.
+      PARAMETER (NN=80000) !Maximum expected value of n and m.
 C     USES spline
 C     Given an m by n tabulated function ya(1:m,1:n), and tabulated
 C     independent variables x2a(1:n), this routine constructs
@@ -36,7 +36,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER m,n,NN
       REAL*8 x1,x2,y,x1a(m),x2a(n),y2a(m,n),ya(m,n)
-      PARAMETER (NN=10000) !Maximum expected value of n and m.
+      PARAMETER (NN=80000) !Maximum expected value of n and m.
 C     USESspline,splint
 C     Given x1a, x2a, ya, m, n as described in splie2 and y2a as
 C     produced by that routine; and given a desired interpolating point
@@ -62,7 +62,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER n,NMAX
       REAL*8 yp1,ypn,x(n),y(n),y2(n)
-      PARAMETER (NMAX=10000)
+      PARAMETER (NMAX=80000)
 C     Given arrays x(1:n) and y(1:n) containing a tabulated function,
 C     i.e., yi = f(xi), with x1 < x2 < ... < xN, and given values yp1
 C     and ypn for the first derivative of the inter- polating function
