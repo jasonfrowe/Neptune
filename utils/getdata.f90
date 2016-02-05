@@ -90,10 +90,10 @@ do
       x(i)=time
       y(i)=flux
       yerr(i)=ferr
-      xpos(i)=xp
-      ypos(i)=yp
-      xnep(i)=xn
-      ynep(i)=yn
+      xpos(i)=xn
+      ypos(i)=yn
+      xnep(i)=xp
+      ynep(i)=yp
    elseif(filestatus == -1) then
       exit  !successively break from data read loop.
    else

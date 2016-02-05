@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2 pixelfit
 
-pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o
+pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.o fitneptunepos.o lfit.o
 pixelfit: pixelfit.f90 $(pixelfitincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfit.f90 $(pixelfitincl) $(LIBS)
 
