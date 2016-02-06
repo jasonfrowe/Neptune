@@ -29,11 +29,11 @@ interface !makes a plot of your data.
    end subroutine plotdatascatter
 end interface
 interface
-   subroutine fftspec(npt,time,flux)
+   subroutine fftspec(npt,time,flux,ferr)
       use precision
       implicit none
       integer, intent(inout) :: npt
-      real(double), dimension(:), intent(inout) :: time,flux
+      real(double), dimension(:), intent(inout) :: time,flux,ferr
    end subroutine fftspec
 end interface
 
@@ -49,7 +49,7 @@ endif
 call getarg(1,filename)
 
 nmax=80000 !maximum number of data points
-
+nmax=1400000
 allocate(time(nmax),flux(nmax),ferr(nmax))
 
 call readfftdata(filename,nmax,npt,time,flux,ferr,minx,mean)
@@ -67,7 +67,7 @@ allocate(bb(4))
 bb=0.0
 call plotdatascatter(npt,time,flux,ferr,bb)
 
-call fftspec(npt,time,flux)
+call fftspec(npt,time,flux,ferr)
 
 call pgclos()
 

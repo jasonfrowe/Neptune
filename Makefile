@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2 pixelfit fftpow
 
-fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o spline.o rqsort.o
+fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o
 fftpow: fftpow.f90 $(fftpowincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
@@ -127,6 +127,8 @@ readfftdata.o: $(UTILS)readfftdata.f90
 	$(F90) $(FFLAGS) $(UTILS)readfftdata.f90
 fftspec.o: $(UTILS)fftspec.f90
 	$(F90) $(FFLAGS) $(UTILS)fftspec.f90
+ran2.o: $(UTILS)ran2.f
+	$(F90) $(FFLAGS) $(UTILS)ran2.f
 
 # Removing object files
 .PHONY : clean

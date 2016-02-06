@@ -46,8 +46,8 @@ npt=i-1
 minx=minval(time(1:npt))
 time(1:npt)=time(1:npt)-minx
 mean=Sum(flux(1:npt))/dble(npt)
-flux(1:npt)=flux(1:npt)/mean-1.0
-ferr(1:npt)=ferr(1:npt)/mean
+!flux(1:npt)=flux(1:npt)/mean-1.0
+!ferr(1:npt)=ferr(1:npt)/mean
 
 return
 end subroutine
