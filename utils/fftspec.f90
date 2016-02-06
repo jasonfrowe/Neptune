@@ -35,17 +35,16 @@ end interface
 
 !resampling routine
 ! 1-linear interpolation
-! 2-sinc interpolation
+! 2-sinc interpolation (not working)
 ! 3-Gaussian-process predictive Mean
-iresampletype=3
+iresampletype=1
 
 call itime(now)
 seed=abs(now(3)+now(1)*now(2)+now(1)*now(3)+now(2)*now(3)*100)
 dumr=ran2(-seed)
 
-!oversampling for FFT
-nover=8
-gap=10.0d0 !identifying gaps in data
+nover=8 !oversampling for FFT
+gap=10.0d0 !identifying gaps in data and replace with white noise.
 
 !convert from c/d to uHz
 cd2uhz=1.0d6/86400.0d0
