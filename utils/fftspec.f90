@@ -14,7 +14,7 @@ integer :: ndt,i,ns,nover,i1,loop,seed,j,nB,nbuf,nstep,k,i2,nbufstep,   &
 integer, dimension(3) :: now
 integer, allocatable, dimension(:) :: p,iwork
 real(double) :: dt,mintime,maxtime,ddt,ts,fs,cd2uhz,dtime,ran2,gasdev,  &
-   gap,dumr,T,sinc,rcond,dtmax
+   gap,dumr,T,sinc,rcond,dtmax,amp
 real(double), allocatable, dimension(:) :: flux2,dts,trs,frs,B,S,work,  &
    pars,alpha,yerr2,mu
 real(double), allocatable, dimension(:,:) :: A,Kernel,KernelZ
@@ -43,8 +43,8 @@ call itime(now)
 seed=abs(now(3)+now(1)*now(2)+now(1)*now(3)+now(2)*now(3)*100)
 dumr=ran2(-seed)
 
-nover=8 !oversampling for FFT
-gap=10.0d0 !identifying gaps in data and replace with white noise.
+nover=10 !oversampling for FFT
+gap=0.0d0 !identifying gaps in data and replace with white noise.
 
 !convert from c/d to uHz
 cd2uhz=1.0d6/86400.0d0
@@ -70,6 +70,7 @@ mintime=minval(time(1:npt))
 maxtime=maxval(time(1:npt))
 
 ns=(maxtime-mintime)/ddt !number of resampled data points
+write(0,*) "npt,ns: ",npt,ns
 !get an estimate of array size for FFTW that power is a 2
 nfft=2**int(log10(dble(npt*nover))/log10(2.0d0)+1.0d0)
 write(0,*) "nfft: ",nfft
@@ -88,7 +89,7 @@ if(iresampletype.eq.1)then
          if(time(i1).ge.ts)then
             loop=1
             dtime=time(i1)-time(i1-1)
-            if(dtime.gt.gap*ddt)then
+            if((dtime.gt.gap*ddt).and.(gap.gt.0.0d0))then
                fs=gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
             else
                fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
@@ -331,7 +332,7 @@ else
                loop=1
                dtime=time(j)-time(j-1)
 !               write(0,*) dtime,gap*ddt
-               if(dtime.gt.gap*ddt)then
+               if((dtime.gt.gap*ddt).and.(gap.gt.0.0d0))then
 !                  write(0,*) "gap.."
                   mu(i)=gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
                endif
@@ -375,10 +376,15 @@ call fftw_execute_dft_r2c(plan,frs,frsC)
 !destroy plans
 call fftw_destroy_plan(plan)
 
+
+write(0,*) "nfft: ",nfft,size(frs),size(frsC)
 open(unit=11,file="fft.dat")
 do i=1,nh
 !   write(0,*) i
-   write(11,*) cd2uhz*dble(i-1)/(dt*dble(nfft)),abs(frsC(i))/dble(nfft)
+!   write(11,*) cd2uhz*dble(i-1)/(dt*dble(nfft)),abs(frsC(i))/sqrt(dble(nfft))
+!   amp=sqrt(DBLE(frsC(i))*DBLE(frsC(i))+DIMAG(frsC(i))*DIMAG(frsC(i)))
+   amp=abs(frsC(i))/dble(npt/2)
+   write(11,*) cd2uhz*dble(i-1)/(dt*dble(nfft)),amp,i
 enddo
 close(11)
 

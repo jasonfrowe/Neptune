@@ -5,7 +5,7 @@ F90 = ifort
 F77 = ifort
 #compiling object file flags
 OPT1 = -O3 -parallel -ipo -openmp -mkl
-#OPT1 = -O0 -g -CB
+#OPT1 = -O0 -g -CB -openmp -mkl
 #OPT1 = -O3
 OPT2 = -heap-arrays 0 
 #OPT2 = 
@@ -35,6 +35,10 @@ UTILS = utils/
 
 #Listing of programs to create.
 all: fitdatav2 pixelfit fftpow
+
+gendataincl = precision.o ran2.o
+gendata: gendata.f90 $(gendataincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)
 
 fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o
 fftpow: fftpow.f90 $(fftpowincl)
