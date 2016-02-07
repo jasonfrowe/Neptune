@@ -6,7 +6,7 @@ integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
-real(double) :: minx,mean,ran2,dumr,gap,dt,mintime,maxtime
+real(double) :: minx,mean,ran2,dumr,gap,dt,mintime,maxtime,cd2uhz
 real(double), allocatable, dimension(:) :: time,flux,ferr,t1,t2,t3,trs, &
    frs,amp
 character(80) :: filename
@@ -41,6 +41,10 @@ interface
 end interface
 
 CALL CPU_TIME(tstart) !for timing runtimes
+
+!Constants
+!convert from c/d to uHz
+cd2uhz=1.0d6/86400.0d0
 
 !parameters controling resampling and FFTs
 nover=10 !oversampling for FFT
@@ -84,12 +88,12 @@ seed=abs(now(3)+now(1)*now(2)+now(1)*now(3)+now(2)*now(3)*100)
 dumr=ran2(-seed)
 
 !open PGPLOT device
-call pgopen('/xserve')  !'?' lets the user choose the device.
+call pgopen('?')!('/xserve')  !'?' lets the user choose the device.
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines
-call pgsch(2.9) !bigger text
+call pgsch(2.7) !bigger text
 
 allocate(bb(4))
 bb=0.0
@@ -117,6 +121,19 @@ call fftspec(nfft,frs,amp,npt,dt,debug)
 !plot Power-spectrum
 call pgpage()
 bb=0.0 !auto-scale the plot
+call plotpspec(nh,nfft,amp,dt,bb)
+!call plotspavg(nh,nfft,amp,dt)
+
+call pgpage()
+bb=0.0
+bb(1)=log10(500.0)
+bb(2)=log10(cd2uhz*dble(nh-1)/(dt*dble(nfft)))
+call plotspec(nh,nfft,amp,dt,bb)
+
+call pgpage()
+bb=0.0
+bb(1)=log10(5.0)
+bb(2)=log10(500.0)
 call plotspec(nh,nfft,amp,dt,bb)
 
 call pgclos()
