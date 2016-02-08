@@ -3,7 +3,7 @@ program fftpow
 use precision
 implicit none
 integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh,    &
-   nbin
+   nbin,nsamp,nsamprate
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
@@ -39,6 +39,14 @@ interface
       real(double) :: dt
       real(double), dimension(:) :: frs,amp
    end subroutine fftspec
+end interface
+interface
+   subroutine poorwavelet(ns,trs,frs,nsamp,nsamprate)
+      use precision
+      implicit none
+      integer ns,nsamp,nsamprate
+      real(double), dimension(:) :: trs,frs
+   end subroutine poorwavelet
 end interface
 
 CALL CPU_TIME(tstart) !for timing runtimes
@@ -157,8 +165,9 @@ call plotpspec(nh,nfft,amp,dt,bb)
 !plot stats
 call plotpstats(nh,meanamp,stdamp,nfft,dt)
 
-!debug=0
-!call poorwavelet(nfft,frs,npt,dt,debug)
+nsamp=npt/100 !sampling size
+nsamprate=npt/1000 !how often to sample
+call poorwavelet(ns,trs,frs,nsamp,nsamprate)
 
 
 call pgclos()

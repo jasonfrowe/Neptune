@@ -243,7 +243,7 @@ maxtime=maxval(time(1:npt))
 ns=(maxtime-mintime)/dt !number of resampled data points
 !write(0,*) "npt,ns: ",npt,ns
 !get an estimate of array size for FFTW that power is a 2
-nfft=2**int(log10(dble(npt*nover))/log10(2.0d0)+1.0d0)
+nfft=2**int(log10(dble(ns*nover))/log10(2.0d0)+1.0d0)
 
 return
 end
