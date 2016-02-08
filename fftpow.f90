@@ -2,13 +2,14 @@ program fftpow
 !uses spline resampling and FFTs to do quick power spectrum analysis.
 use precision
 implicit none
-integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh
+integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh,    &
+   nbin
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
 real(double) :: minx,mean,ran2,dumr,gap,dt,mintime,maxtime,cd2uhz
 real(double), allocatable, dimension(:) :: time,flux,ferr,t1,t2,t3,trs, &
-   frs,amp,ferr2
+   frs,amp,ferr2,meanamp,stdamp
 character(80) :: filename
 
 interface
@@ -122,23 +123,43 @@ allocate(amp(nh))
 debug=1
 call fftspec(nfft,frs,amp,npt,dt,debug)
 
+!calculate running mean and S/N=3 estimate
+allocate(meanamp(nh),stdamp(nh))
+nbin=nh/200 !size of window for stats
+call fftstats(nh,amp,meanamp,stdamp,nbin)
+
 !plot Power-spectrum
 call pgpage()
 bb=0.0 !auto-scale the plot
 call plotpspec(nh,nfft,amp,dt,bb)
-!call plotspavg(nh,nfft,amp,dt)
+!plot stats
+call plotpstats(nh,meanamp,stdamp,nfft,dt)
 
 call pgpage()
 bb=0.0
 bb(1)=log10(500.0)
 bb(2)=log10(cd2uhz*dble(nh-1)/(dt*dble(nfft)))
 call plotspec(nh,nfft,amp,dt,bb)
+call plotstats(nh,meanamp,stdamp,nfft,dt)
 
 call pgpage()
 bb=0.0
 bb(1)=log10(5.0)
 bb(2)=log10(500.0)
 call plotspec(nh,nfft,amp,dt,bb)
+call plotstats(nh,meanamp,stdamp,nfft,dt)
+
+!make a new page for the 'poor-person' wavelet
+call pgpage()
+call pgpanl(1,4)
+bb=0
+call plotpspec(nh,nfft,amp,dt,bb)
+!plot stats
+call plotpstats(nh,meanamp,stdamp,nfft,dt)
+
+!debug=0
+!call poorwavelet(nfft,frs,npt,dt,debug)
+
 
 call pgclos()
 

@@ -40,7 +40,7 @@ gendataincl = precision.o ran2.o
 gendata: gendata.f90 $(gendataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)
 
-fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o
+fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o
 fftpow: fftpow.f90 $(fftpowincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
@@ -137,6 +137,8 @@ resample.o: $(UTILS)resample.f90
 	$(F90) $(FFLAGS) $(UTILS)resample.f90
 plotspec.o: $(UTILS)plotspec.f90
 	$(F90) $(FFLAGS) $(UTILS)plotspec.f90
+fftstats.o: $(UTILS)fftstats.f90
+	$(F90) $(FFLAGS) $(UTILS)fftstats.f90
 
 # Removing object files
 .PHONY : clean

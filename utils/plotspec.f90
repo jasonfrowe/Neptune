@@ -144,7 +144,7 @@ call pgbox("BLCNTS",0.0,0,"BLCNTVS",0.0,0)
 call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.20*(bb(4)-bb(3)),0.0,0.5,         &
    "Frequency (\(0638)Hz)")
 call pgptxt(bb(1)-0.10*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
-   "Power (ppm\u2\d \(0638)Hz\u-1\d)")
+   "PD (ppm\u2\d \(0638)Hz\u-1\d)")
 call pgline(nplot,x,y)   !plot line
 
 end subroutine plotpspec
