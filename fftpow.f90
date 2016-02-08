@@ -8,7 +8,7 @@ real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
 real(double) :: minx,mean,ran2,dumr,gap,dt,mintime,maxtime,cd2uhz
 real(double), allocatable, dimension(:) :: time,flux,ferr,t1,t2,t3,trs, &
-   frs,amp
+   frs,amp,ferr2
 character(80) :: filename
 
 interface
@@ -97,7 +97,7 @@ call pgsch(2.7) !bigger text
 
 allocate(bb(4))
 bb=0.0
-call plotdatascatter(npt,time,flux,ferr,bb)
+!call plotdatascatter(npt,time,flux,ferr,bb)
 
 !get stats about datasizes
 call getdtns(npt,time,nover,dt,ns,nfft,mintime,maxtime)
@@ -109,6 +109,10 @@ allocate(trs(ns),frs(nfft)) !allocate space for resampled
 frs=0.0d0 !needs to be initiated to zero for zero-padding for oversampling
 call resample(npt,time,flux,ferr,ns,trs,frs,iresampletype,seed,dt,      &
    mintime,gap,debug)
+
+allocate(ferr2(ns))
+ferr2=0.1d0 !plotdatascatter wants an error for input
+call plotdatascatter(ns,trs,frs,ferr2,bb)
 
 !number of frequency/amplitudes from fftspec to be returned
 nh=(nfft/2)+1
