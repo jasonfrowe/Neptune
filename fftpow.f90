@@ -3,7 +3,7 @@ program fftpow
 use precision
 implicit none
 integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh,    &
-   nbin,nsamp,nsamprate,nfftl,nhl,scaletype,calcstats
+   nbin,nsamp,nsamprate,nfftl,nhl,scaletype,calcstats,nsampt,nsampratet
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
@@ -68,7 +68,12 @@ gap=20.0d0 !identifying gaps in data and replace with white noise.
 ! 3-Gaussian-process predictive Mean
 iresampletype=3
 !calcstats 0-no,1-yes
-calcstats=1
+calcstats=0
+!wavelet parametrs
+wran1=0.05d0!0.0008d0
+wran2=1.0d0!0.012d0
+nsampt=10  !sampling size
+nsampratet=100 !how often to sample
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -123,7 +128,7 @@ call getdtns(npt,time,nover,dt,ns,nfft,mintime,maxtime)
 !write(0,*) "dt, ns, nfft"
 !write(0,*) dt,ns,nfft
 
-debug=0 !if =1, then resampled lightcurve is writen to "interpolate.dat"
+debug=1 !if =1, then resampled lightcurve is writen to "interpolate.dat"
 allocate(trs(ns),frs(nfft)) !allocate space for resampled
 frs=0.0d0 !needs to be initiated to zero for zero-padding for oversampling
 call resample(npt,time,flux,ferr,ns,trs,frs,iresampletype,seed,dt,      &
@@ -169,10 +174,8 @@ call plotspec(nh,nfft,amp,dt,bb)
 if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
 
 !make a new page for the 'poor-person' wavelet
-wran1=0.3d0!0.0008d0
-wran2=1.0d0!0.012d0
-nsamp=ns/10 !sampling size
-nsamprate=ns/100 !how often to sample
+nsamp=ns/nsampt!sampling size
+nsamprate=ns/nsampratet !how often to sample
 minamp=1.0e-7!minval(amp(int(wran1*dnh):int(wran2*dnh)))
 maxamp=maxval(amp(int(wran1*dnh+2):int(wran2*dnh))) !maximum amplitude for plotting
 maxamp=maxamp*2.0d0

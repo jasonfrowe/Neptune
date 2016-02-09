@@ -12,6 +12,7 @@ integer :: i1,i2,i,j,k,loop,nbuf,nstep,npars,nss,nbufstep,npts,info,    &
 real(double) :: ts,fs,dtime,gasdev,dtmax
 real(double), allocatable, dimension(:) :: pars,dts,alpha,yerr2,mu
 real(double), allocatable, dimension(:,:) :: Kernel,KernelZ
+character(80) :: line
 
 interface !creates a co-variance matrix
    subroutine makekernel(Kernel,npt1,npt2,x1,x2,npt,yerr,npars,pars)
@@ -37,7 +38,7 @@ if(iresampletype.eq.1)then
             dtime=time(i1)-time(i1-1)
             if((dtime.gt.gap*dt).and.(gap.gt.0.0d0))then
                fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
-               fs=fs+gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
+!               fs=fs+gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
             else
                fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
             endif
@@ -58,7 +59,7 @@ elseif(iresampletype.eq.2)then
 
 elseif(iresampletype.eq.3)then
 
-   nbuf=10000 !break up resampling to managable size
+   nbuf=1000 !break up resampling to managable size
    nstep=(ns/nbuf)+1 !number of steps to cover sample size
 
    !Here are the parameters that control the co-variance matrix and fitted
@@ -160,15 +161,17 @@ elseif(iresampletype.eq.3)then
       allocate(KernelZ(nss,npts))
       allocate(yerr2(npts),mu(nss))
       yerr2=0.0d0
+!      call makekernel(KernelZ,nss,npts,trs(1+nbufstep:nss+nbufstep),    &
+!         time(i1:i2),npts,yerr2,npars,pars)
       call makekernel(KernelZ,nss,npts,trs(1+nbufstep:nss+nbufstep),    &
-         time(i1:i2),npts,yerr2,npars,pars)
+         time(i1:i2),npts,ferr(i1:i2),npars,pars)
       mu=matmul(KernelZ,alpha)
 
 !     fill in big gaps with noise.
-      j=i1
-      loop=0
-      do i=2,nss
+      j=max(i1,2)
+      do i=1,nss
          ts=trs(i+nbufstep) !time at sample point
+         loop=0
          do while (loop.eq.0)
             if(time(j).ge.ts)then
                loop=1
@@ -177,26 +180,30 @@ elseif(iresampletype.eq.3)then
                if((dtime.gt.gap*dt).and.(gap.gt.0.0d0))then
 !                  write(0,*) "gap.."
 !                  mu(i)=gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
-                  mu(i)=flux(j)+(flux(j-1)-flux(j))*(ts-time(j-1))/dtime
-                  mu(i)=mu(i)+gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
+                  mu(i)=flux(j-1)+(flux(j)-flux(j-1))*(ts-time(j-1))/dtime
+!                  mu(i)=mu(i)+gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
                endif
             else
                j=j+1
             endif
          enddo
-         loop=0
       enddo
 
       frs(1+nbufstep:nss+nbufstep)=mu(1:nss)
 
       deallocate(Kernel,alpha,KernelZ,yerr2,mu)
-      write(0,*) "Gaussian predictor done ",k,"/",nstep
+
+      write(line,'(A24,I5,A1,I5)') "Gaussian predictor done ",k,"/",nstep
+      call ovrwrt(line,2)
 
    enddo
 
    deallocate(pars)
 
+   write(0,*) "Gaussian Predictor Finished                   "
+
 endif
+
 
 !if debug=1 then write out the interpolated lightcurve for inspection.
 if(debug.eq.1)then
