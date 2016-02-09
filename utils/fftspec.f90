@@ -1,4 +1,4 @@
-subroutine fftspec(nfft,frs,amp,npt,dt,debug)
+subroutine fftspec(nfft,frs,amp,ns,dt,debug)
 use precision
 !iso_c_binding is for FFTW3 interface
 use, intrinsic :: iso_c_binding
@@ -6,7 +6,7 @@ implicit none
 !add in the FFTW3 modules
 include 'fftw3.f03'
 !import vars
-integer :: nfft,debug,npt
+integer :: nfft,debug,ns
 real(double) :: dt
 real(double), dimension(:) :: frs,amp
 !local vars
@@ -34,14 +34,14 @@ call fftw_destroy_plan(plan)
 
 !calculate amplitudes
 do i=1,nh
-   amp(i)=abs(frsC(i))/dble(npt/2)
+   amp(i)=abs(frsC(i))/dble(ns/2)
 enddo
 
 !if debug=1, then write out the FFT to 'fft.dat'
 if(debug.eq.1)then
    open(unit=11,file="fft.dat")
    do i=1,nh
-      amp1=abs(frsC(i))/dble(npt/2)
+      amp1=abs(frsC(i))/dble(ns/2)
       write(11,*) cd2uhz*dble(i-1)/(dt*dble(nfft)),amp1
    enddo
    close(11)

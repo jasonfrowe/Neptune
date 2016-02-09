@@ -3,11 +3,12 @@ program fftpow
 use precision
 implicit none
 integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh,    &
-   nbin,nsamp,nsamprate
+   nbin,nsamp,nsamprate,nfftl,nhl
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
-real(double) :: minx,mean,ran2,dumr,gap,dt,mintime,maxtime,cd2uhz
+real(double) :: minx,mean,ran2,dumr,gap,dt,mintime,maxtime,cd2uhz,      &
+   maxamp,minamp,f,wran1,wran2,dnh,dnhl
 real(double), allocatable, dimension(:) :: time,flux,ferr,t1,t2,t3,trs, &
    frs,amp,ferr2,meanamp,stdamp
 character(80) :: filename
@@ -32,19 +33,22 @@ interface !makes a plot of your data.
    end subroutine plotdatascatter
 end interface
 interface
-   subroutine fftspec(nfft,frs,amp,npt,dt,debug)
+   subroutine fftspec(nfft,frs,amp,ns,dt,debug)
       use precision
       implicit none
-      integer :: nfft,debug,npt
+      integer :: nfft,debug,ns
       real(double) :: dt
       real(double), dimension(:) :: frs,amp
    end subroutine fftspec
 end interface
 interface
-   subroutine poorwavelet(ns,trs,frs,nsamp,nsamprate)
+   subroutine poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,   &
+    maxamp,bb)
       use precision
       implicit none
-      integer ns,nsamp,nsamprate
+      integer ns,nsamp,nsamprate,nover
+      real, dimension(:) :: bb
+      real(double) :: dt,minamp,maxamp
       real(double), dimension(:) :: trs,frs
    end subroutine poorwavelet
 end interface
@@ -125,11 +129,12 @@ call plotdatascatter(ns,trs,frs,ferr2,bb)
 
 !number of frequency/amplitudes from fftspec to be returned
 nh=(nfft/2)+1
+dnh=dble(nh) !precompute int->dble
 allocate(amp(nh))
 
 !calculate amplitude spectrum
 debug=1
-call fftspec(nfft,frs,amp,npt,dt,debug)
+call fftspec(nfft,frs,amp,ns,dt,debug)
 
 !calculate running mean and S/N=3 estimate
 allocate(meanamp(nh),stdamp(nh))
@@ -158,16 +163,29 @@ call plotspec(nh,nfft,amp,dt,bb)
 call plotstats(nh,meanamp,stdamp,nfft,dt)
 
 !make a new page for the 'poor-person' wavelet
+wran1=0.0d0!0.0006d0
+wran2=1.0d0!0.3d0
+nsamp=ns/10 !sampling size
+nsamprate=ns/100 !how often to sample
+minamp=1.0e-7!minval(amp(int(wran1*dnh):int(wran2*dnh)))
+maxamp=maxval(amp(int(wran1*dnh+2):int(wran2*dnh))) !maximum amplitude for plotting
+maxamp=maxamp*1.1d0
 call pgpage()
 call pgpanl(1,4)
-bb=0
+bb=0.0
+nfftl=2**int(log10(dble(nsamp*nover))/log10(2.0d0)+1.0d0)
+nhl=(nfftl/2)+1
+dnhl=dble(nhl)
+f=cd2uhz*(wran1*dnhl+2.0)/(dt*dble(nfftl))
+bb(1)=log10(real(f))
+f=cd2uhz*(wran2*dnhl-1.0)/(dt*dble(nfftl))
+!write(0,*) "fff:",f
+bb(2)=log10(real(f))
 call plotpspec(nh,nfft,amp,dt,bb)
 !plot stats
 call plotpstats(nh,meanamp,stdamp,nfft,dt)
-
-nsamp=npt/100 !sampling size
-nsamprate=npt/1000 !how often to sample
-call poorwavelet(ns,trs,frs,nsamp,nsamprate)
+call pgpanl(1,1)
+call poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,maxamp,bb)
 
 
 call pgclos()

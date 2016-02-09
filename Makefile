@@ -40,7 +40,7 @@ gendataincl = precision.o ran2.o
 gendata: gendata.f90 $(gendataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)
 
-fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o
+fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o heatlut.o
 fftpow: fftpow.f90 $(fftpowincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
