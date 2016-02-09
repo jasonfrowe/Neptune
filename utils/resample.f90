@@ -36,7 +36,8 @@ if(iresampletype.eq.1)then
             loop=1
             dtime=time(i1)-time(i1-1)
             if((dtime.gt.gap*dt).and.(gap.gt.0.0d0))then
-               fs=gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
+               fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
+               fs=fs+gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
             else
                fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
             endif
@@ -175,7 +176,9 @@ elseif(iresampletype.eq.3)then
 !               write(0,*) dtime,gap*ddt
                if((dtime.gt.gap*dt).and.(gap.gt.0.0d0))then
 !                  write(0,*) "gap.."
-                  mu(i)=gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
+!                  mu(i)=gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
+                  mu(i)=flux(j)+(flux(j-1)-flux(j))*(ts-time(j-1))/dtime
+                  mu(i)=mu(i)+gasdev(seed)*(ferr(j-1)+ferr(j))/2.0d0
                endif
             else
                j=j+1

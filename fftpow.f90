@@ -3,7 +3,7 @@ program fftpow
 use precision
 implicit none
 integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh,    &
-   nbin,nsamp,nsamprate,nfftl,nhl
+   nbin,nsamp,nsamprate,nfftl,nhl,scaletype,calcstats
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
@@ -43,10 +43,10 @@ interface
 end interface
 interface
    subroutine poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,   &
-    maxamp,bb)
+    maxamp,bb,scaletype)
       use precision
       implicit none
-      integer ns,nsamp,nsamprate,nover
+      integer ns,nsamp,nsamprate,nover,scaletype
       real, dimension(:) :: bb
       real(double) :: dt,minamp,maxamp
       real(double), dimension(:) :: trs,frs
@@ -61,12 +61,14 @@ cd2uhz=1.0d6/86400.0d0
 
 !parameters controling resampling and FFTs
 nover=10 !oversampling for FFT
-gap=0.0d0 !identifying gaps in data and replace with white noise.
+gap=20.0d0 !identifying gaps in data and replace with white noise.
 !resampling routine
 ! 1-linear interpolation
 ! 2-sinc interpolation (not working)
 ! 3-Gaussian-process predictive Mean
-iresampletype=1
+iresampletype=3
+!calcstats 0-no,1-yes
+calcstats=1
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -77,11 +79,15 @@ endif
 !read in filename containing data (3 columns)
 call getarg(1,filename)
 
-nmax=1400000 !maximum number of data points
+nmax=1700000 !maximum number of data points
 allocate(time(nmax),flux(nmax),ferr(nmax))
 
 call readfftdata(filename,nmax,npt,time,flux,ferr,minx,mean)
 write(0,*) "Number of points read: ",npt !report how much data was read in
+if(npt.le.3)then
+   write(0,*) "Not enough data"
+   stop
+endif
 !compact data arrays
 allocate(t1(npt),t2(npt),t3(npt))
 t1=time(1:npt)
@@ -139,37 +145,37 @@ call fftspec(nfft,frs,amp,ns,dt,debug)
 !calculate running mean and S/N=3 estimate
 allocate(meanamp(nh),stdamp(nh))
 nbin=nh/200 !size of window for stats
-call fftstats(nh,amp,meanamp,stdamp,nbin)
+if(calcstats.eq.1) call fftstats(nh,amp,meanamp,stdamp,nbin)
 
 !plot Power-spectrum
 call pgpage()
 bb=0.0 !auto-scale the plot
 call plotpspec(nh,nfft,amp,dt,bb)
 !plot stats
-call plotpstats(nh,meanamp,stdamp,nfft,dt)
+if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt)
 
 call pgpage()
 bb=0.0
-bb(1)=log10(500.0)
+bb(1)=log10(min(500.0,cd2uhz*dble(nh/2)/(dt*dble(nfft))))
 bb(2)=log10(cd2uhz*dble(nh-1)/(dt*dble(nfft)))
 call plotspec(nh,nfft,amp,dt,bb)
-call plotstats(nh,meanamp,stdamp,nfft,dt)
+if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
 
 call pgpage()
 bb=0.0
 bb(1)=log10(5.0)
-bb(2)=log10(500.0)
+bb(2)=log10(min(500.0,cd2uhz*dble(nh-1)/(dt*dble(nfft))))
 call plotspec(nh,nfft,amp,dt,bb)
-call plotstats(nh,meanamp,stdamp,nfft,dt)
+if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
 
 !make a new page for the 'poor-person' wavelet
-wran1=0.0d0!0.0006d0
-wran2=1.0d0!0.3d0
+wran1=0.3d0!0.0008d0
+wran2=1.0d0!0.012d0
 nsamp=ns/10 !sampling size
 nsamprate=ns/100 !how often to sample
 minamp=1.0e-7!minval(amp(int(wran1*dnh):int(wran2*dnh)))
 maxamp=maxval(amp(int(wran1*dnh+2):int(wran2*dnh))) !maximum amplitude for plotting
-maxamp=maxamp*1.1d0
+maxamp=maxamp*2.0d0
 call pgpage()
 call pgpanl(1,4)
 bb=0.0
@@ -181,11 +187,19 @@ bb(1)=log10(real(f))
 f=cd2uhz*(wran2*dnhl-1.0)/(dt*dble(nfftl))
 !write(0,*) "fff:",f
 bb(2)=log10(real(f))
-call plotpspec(nh,nfft,amp,dt,bb)
-!plot stats
-call plotpstats(nh,meanamp,stdamp,nfft,dt)
+scaletype=0
+if(scaletype.eq.0)then
+   call plotspec(nh,nfft,amp,dt,bb)
+   !plot stats
+   if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
+else
+   call plotpspec(nh,nfft,amp,dt,bb)
+   !plot stats
+   if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt)
+endif
 call pgpanl(1,1)
-call poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,maxamp,bb)
+call poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,maxamp,bb,  &
+   scaletype)
 
 
 call pgclos()

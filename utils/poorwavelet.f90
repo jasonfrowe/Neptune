@@ -1,8 +1,8 @@
 subroutine poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,      &
-   maxamp,bb)
+   maxamp,bb,scaletype)
 use precision
 implicit none
-integer ns,nsamp,nsamprate,nover
+integer ns,nsamp,nsamprate,nover,scaletype
 real, dimension(:) :: bb
 real(double) :: dt,minamp,maxamp
 real(double), dimension(:) :: trs,frs
@@ -25,6 +25,8 @@ interface
       real(double), dimension(:) :: frs,amp
    end subroutine fftspec
 end interface
+
+!scaletype -> 0-linearscale,1-logscale
 
 !convert from c/d to uHz
 cd2uhz=1.0d6/86400.0d0
@@ -53,6 +55,7 @@ write(0,*) "nwave,nhl: ",nwave,nhl
 
 !number of point for plotting
 nplot=nhl-1
+nplot=1000
 allocate(ia(nplot,1))
 dnplot=dble(nplot)  !precompute int->dble
 
@@ -124,20 +127,28 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
 !      write(0,*) "f: ",f,(f1-lfmin)/dlf
       j1=max(1,int((lf1-lfmin)/dlf*dnplot)+1)
       j2=min(nplot,int((lf2-lfmin)/dlf*dnplot)+1)
-      ia1=int((lamp-lminamp)/(lmaxamp-lminamp)*dble(NCOL-1))+16
-      if(lamp.lt.lminamp) ia1=16
-      if(lamp.gt.lmaxamp) ia1=ncol+15
+      if(scaletype.eq.0)then
+         ia1=int((amp(k)-minamp)/(maxamp-minamp)*dble(NCOL-1))+16
+         if(amp(k).lt.minamp) ia1=16
+         if(amp(k).gt.maxamp) ia1=ncol+15
+      else
+         ia1=int((lamp-lminamp)/(lmaxamp-lminamp)*dble(NCOL-1))+16
+         if(lamp.lt.lminamp) ia1=16
+         if(lamp.gt.lmaxamp) ia1=ncol+15
+      endif
 !      write(0,*) j1,j2,ia1
       do j=j1,j2
          ia(j,1)=max(ia(j,1),ia1)
       enddo
 !      read(5,*)
    enddo
+!   write(0,*) "f: ",f,f1,f2
+!   write(0,*) "j: ",j1,j2,nhl
 
 !   call pgpixl(ia,nplot,1,1,nplot,1,1,bb(1),bb(2),real(trs(i1)),real(trs(i2)))
    call pgpixl(ia,nplot,1,1,nplot,1,1,bb(1),bb(2),pt1,pt2)
 
-   write(0,*) "Wave # ",i,"done"
+!   write(0,*) "Wave # ",i,"done"
 !   read(5,*)
 enddo
 
