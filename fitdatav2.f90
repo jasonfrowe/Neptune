@@ -176,9 +176,9 @@ deallocate(KernelZ,res,mu,std,yerr2)
 !Here are the parameters that control the co-variance matrix and fitted
 !parameters
 npars=4 !number of parameters used for model of the matrix
-pars(1)=0.02d0 !amp scale for exp
+pars(1)=0.225846158696279  !amp scale for exp
 pars(2)=0.02856!0.146d0 !length scale for exp
-pars(3)=0.002d0 !second amp scale
+pars(3)=3.416968941802516E-003 !second amp scale
 pars(4)=500.0d0 !second length scale
 
 write(0,*) "Calling fitter"

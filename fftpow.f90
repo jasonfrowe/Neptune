@@ -70,10 +70,11 @@ iresampletype=3
 !calcstats 0-no,1-yes
 calcstats=0
 !wavelet parametrs
-wran1=0.05d0!0.0008d0
-wran2=1.0d0!0.012d0
+wran1=0.2!0.0008d0
+wran2=1.0!0.012d0
 nsampt=10  !sampling size
 nsampratet=100 !how often to sample
+scaletype=0 !0-linear, 1=log
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -190,7 +191,6 @@ bb(1)=log10(real(f))
 f=cd2uhz*(wran2*dnhl-1.0)/(dt*dble(nfftl))
 !write(0,*) "fff:",f
 bb(2)=log10(real(f))
-scaletype=0
 if(scaletype.eq.0)then
    call plotspec(nh,nfft,amp,dt,bb)
    !plot stats

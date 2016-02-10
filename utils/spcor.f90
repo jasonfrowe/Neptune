@@ -19,11 +19,11 @@ do i=1,npt-1
       xp(j)=(x(ipl)+x(ipf))/2.0d0 !average position
       rp(j)=(r(ipl)+r(ipf))/2.0d0 !average amplitude
       ipf=i+1
-      write(0,*) ipf,ipl,xp(j),rp(j)
+!      write(0,*) ipf,ipl,xp(j),rp(j)
    endif
 enddo
 np=j !number of pixel positions
-write(0,*) "np: ",np
+!write(0,*) "np: ",np
 
 !set up spline
 allocate(rp2(np))

@@ -54,8 +54,8 @@ allocate(amp(nhl))
 write(0,*) "nwave,nhl: ",nwave,nhl
 
 !number of point for plotting
-nplot=nhl-1
-nplot=1000
+!nplot=nhl-1
+nplot=400
 allocate(ia(nplot,1))
 dnplot=dble(nplot)  !precompute int->dble
 
@@ -115,7 +115,7 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
    frsl=0.0d0 !zero out array for zero-padding
    frsl(1:nss)=frs(i1:i2)
    !calculate amplitude spectrum
-   debug=1
+   debug=0
    call fftspec(nfftl,frsl,amp,nss,dt,debug)
    do k=2,nhl
       lamp=log10(amp(k))

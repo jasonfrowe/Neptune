@@ -138,6 +138,8 @@ do i=1,npt
 enddo
 close(11)
 
+deallocate(alpha,mu,KernelZ,yerr2,std)
+
 !number of jumps detected - sets number of parameters for segment fit
 npix=maxval(npixel(1:npt))
 !total number of parameters that define the model.
@@ -148,8 +150,8 @@ do i=1,npars
    sol(i)=pars(i)
    isol(i)=0 !keep Kernel constant.
 enddo
-isol(1)=-1 !allow amplitude hyperparameter to change.
-isol(3)=-1
+!isol(1)=-1 !allow amplitude hyperparameter to change.
+!isol(3)=-1
 !add in X-pixel model fit.
 do i=1+npars,npars+npix*npord
    sol(i)=0.0d0 !start with a straight line for a guess
