@@ -4,16 +4,17 @@ implicit none
 integer :: nh,nbin
 real(double), dimension(nh) :: amp,meanamp,stdamp
 !local vars
-integer :: i,j,k,i1,i2,nbind2,nsamp,ncut,iter,itermax
+integer :: i,j,k,i1,i2,nbind2,nsamp,ncut,iter,itermax,ilast
 integer, allocatable, dimension(:) :: cut
-real(double) :: stdev,sigcut
+real(double) :: stdev,sigcut,std,mean,lmean,lstd
 real(double), allocatable, dimension(:) :: samples
 
 nbind2=nbin/2
 sigcut=4.0d0
 
 allocate(samples(2*nbind2+1),cut(2*nbind2+1))
-do i=1,nh
+ilast=0
+do i=1,nh+nbind2,nbin
    i1=max(1,i-nbind2)
    i2=min(nh,i+nbind2)
    nsamp=i2-i1+1
@@ -43,12 +44,31 @@ do i=1,nh
       ncut=nsamp-j
 !      write(0,*) "ncut: ",ncut
       nsamp=j
-      stdamp(i)=stdev(nsamp,samples,meanamp(i))
+      std=stdev(nsamp,samples,mean)
+
+      meanamp(i)=mean
+      stdamp(i)=std
 
       iter=iter+1
    enddo
+
+   if(ilast.gt.0)then
+      do k=ilast+1,i
+         meanamp(k)=lmean+(mean-lmean)*dble(k-ilast)/dble(i-ilast)
+         stdamp(k) = lstd+( std- lstd)*dble(k-ilast)/dble(i-ilast)
+      enddo
+   else
+      meanamp(i1:i)=mean
+      stdamp(i1:i)=std
+   endif
+   lmean=mean
+   lstd=std
+   ilast=i
 enddo
+meanamp(ilast:nh)=mean !fill in end
+stdamp(ilast:nh)=std
 deallocate(samples)
+
 
 return
 end subroutine

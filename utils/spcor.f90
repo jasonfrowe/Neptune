@@ -10,7 +10,9 @@ real(double), allocatable, dimension(:) :: xp,rp,rp2
 
 allocate(xp(npt),rp(npt))
 
-j=0 !counter
+j=1 !counter
+xp(j)=x(1) !adding in start points to bound spline
+rp(j)=r(1)
 ipf=1
 do i=1,npt-1
    ipl=i
@@ -22,6 +24,9 @@ do i=1,npt-1
 !      write(0,*) ipf,ipl,xp(j),rp(j)
    endif
 enddo
+j=j+1
+xp(j)=x(npt) !adding in end points to bound spline
+rp(j)=r(npt)
 np=j !number of pixel positions
 !write(0,*) "np: ",np
 

@@ -8,12 +8,12 @@ real(double) :: dt,minamp,maxamp
 real(double), dimension(:) :: trs,frs
 !local vars
 integer :: i,j1,j2,j,k,nwave,nfftl,nhl,nsampd2,nss,debug,i1,i2,nplot,ncol,&
-   ia1
+   ia1,nbin
 integer, allocatable, dimension(:,:) :: ia
 real:: r,g,b,pt1,pt2
 real(double) :: cd2uhz,f,lminamp,lmaxamp,lamp,f1,f2,dtd2,lfmin,lfmax,   &
    dlf,dnplot,lf1,lf2
-real(double), allocatable, dimension(:) :: amp,frsl
+real(double), allocatable, dimension(:) :: amp,frsl,meanamp,stdamp
 !real(double), allocatable, dimension(:) :: wavelet
 
 interface
@@ -117,6 +117,13 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
    !calculate amplitude spectrum
    debug=0
    call fftspec(nfftl,frsl,amp,nss,dt,debug)
+
+!   nbin=100
+!   allocate(meanamp(nhl),stdamp(nhl))
+!   call fftstats(nhl,amp,meanamp,stdamp,nbin)
+!   amp=amp-meanamp
+!   deallocate(meanamp,stdamp)
+
    do k=2,nhl
       lamp=log10(amp(k))
       f=cd2uhz*dble(k)/(dt*dble(nfftl))
