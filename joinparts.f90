@@ -1,11 +1,11 @@
 program joinparts
 use precision
 implicit none
-integer :: npt1,npt2,nmax,i,j,k,npt
-real(double) :: t1,t2,f1,f2
+integer :: npt1,npt2,nmax,i,j,k,npt,ixo,iyo
+real(double) :: t1,t2,f1,f2,a,b,Pi,mean,pixel,poly
 real(double), allocatable, dimension(:) :: x1,y1,yerr1,xpos1,ypos1,     &
    xnep1,ynep1,x2,y2,yerr2,xpos2,ypos2,xnep2,ynep2,x,y,yerr,xpos,ypos,  &
-   xnep,ynep,oflux1,pmod1,smod1,oflux2,pmod2,smod2,oflux,pmod,smod
+   xnep,ynep,oflux1,pmod1,smod1,oflux2,pmod2,smod2,oflux,pmod,smod,ax,ay
 character(80) :: filename1,filename2
 
 !These are F90 interfaces that allow one to pass assumed sized arrays
@@ -21,6 +21,16 @@ interface !reads in a three-column ascii space seperated file
       character(80), intent(inout) :: filename
    end subroutine getpdata
 end interface
+interface
+   subroutine fitneptunepos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+      use precision
+      implicit none
+      integer :: npt,ixo,iyo
+      real(double), dimension(:) :: x,xnep,ynep,ax,ay
+   end subroutine fitneptunepos
+end interface
+
+Pi=acos(-1.d0)
 
 nmax=80000
 
@@ -158,6 +168,23 @@ do k=i,npt1
    ynep(npt)=ynep1(k)
 enddo
 
+!need fits to the motion of Neptune - raw data is too noisy.
+!also means that pixel-crossings is now a linear function (good!)
+ixo=5 !order of polynomial to fit to x-positions
+iyo=5 !order of polynomial to fit to y-positions
+allocate(ax(ixo),ay(iyo))
+call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+
+mean=sum(y(1:npt))/dble(npt)
+a=0.000589556
+b=4.21938
+do i=1,npt
+   pixel=poly(x(i),ixo,ax)
+   y(i)=(y(i)/mean-a*sin(2*pi*pixel+b))*mean
+   xnep(i)=pixel
+enddo
+
+
 !scale and shift data.
 call exportdata(npt,x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,ynep)
 
@@ -240,3 +267,21 @@ npt=i-1
 
 return
 end subroutine getpdata
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function poly(x,nfit,ans)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+integer :: nfit
+real(double) :: x,poly
+real(double), dimension(nfit) :: ans
+integer :: i
+
+poly=ans(1)
+do i=2,nfit
+   poly=poly+ans(i)*x**dble(i-1)
+enddo
+
+return
+end function

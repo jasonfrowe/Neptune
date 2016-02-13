@@ -12,7 +12,7 @@ integer :: i,j1,j2,j,k,nwave,nfftl,nhl,nsampd2,nss,debug,i1,i2,nplot,ncol,&
 integer, allocatable, dimension(:,:) :: ia
 real:: r,g,b,pt1,pt2
 real(double) :: cd2uhz,f,lminamp,lmaxamp,lamp,f1,f2,dtd2,lfmin,lfmax,   &
-   dlf,dnplot,lf1,lf2
+   dlf,dnplot,lf1,lf2,gaussian,g1,g2,g3,zg,wg
 real(double), allocatable, dimension(:) :: amp,frsl,meanamp,stdamp
 !real(double), allocatable, dimension(:) :: wavelet
 
@@ -114,6 +114,17 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
    nss=i2-i1+1
    frsl=0.0d0 !zero out array for zero-padding
    frsl(1:nss)=frs(i1:i2)
+   !weighted window
+   g1=1.0d0
+   g2=dble(nss/2)
+   g3=dble(nss/3)
+   zg=gaussian(g1,g2,g3,1)
+   do k=1,nss
+      wg=max(0.0,gaussian(g1,g2,g3,dble(k))-zg)
+!      write(0,*) k,wg,gaussian(g1,g2,g3,dble(k))
+!      read(5,*)
+      frsl(k)=frsl(k)*wg
+   enddo
    !calculate amplitude spectrum
    debug=0
    call fftspec(nfftl,frsl,amp,nss,dt,debug)
@@ -165,3 +176,15 @@ call PGSCLP(1) !enable clipping
 
 return
 end subroutine poorwavelet
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function gaussian(a,b,c,x)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+real(double) :: a,b,c,gaussian,x
+
+gaussian=a*exp(-(x-b)*(x-b)/(2.0*c*c))
+
+return
+end

@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2 pixelfit fftpow
 
-joinpartsincl = precision.o 
+joinpartsincl = precision.o fitneptunepos.o lfit.o
 joinparts: joinparts.f90 $(joinpartsincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ joinparts.f90 $(joinpartsincl)
 

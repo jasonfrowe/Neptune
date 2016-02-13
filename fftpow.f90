@@ -61,7 +61,7 @@ cd2uhz=1.0d6/86400.0d0
 
 !parameters controling resampling and FFTs
 nover=10 !oversampling for FFT
-gap=20.0d0 !identifying gaps in data and replace with white noise.
+gap=10.0d0 !identifying gaps in data and replace with white noise.
 !resampling routine
 ! 1-linear interpolation
 ! 2-sinc interpolation (not working)
@@ -70,11 +70,11 @@ iresampletype=3
 !calcstats 0-no,1-yes
 calcstats=1
 !wavelet parametrs
-wran1=0.0!0.0008d0
+wran1=0.001!0.0008d0
 wran2=1.0!0.1!0.012d0
 nsampt=10  !sampling size
 nsampratet=1000 !how often to sample
-scaletype=0 !0-linear, 1=log
+scaletype=1 !0-linear, 1=log
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -179,8 +179,8 @@ nsamp=ns/nsampt!sampling size
 nsamprate=ns/nsampratet !how often to sample
 if(calcstats.eq.1)then
    minamp=1.0*minval(meanamp(int(wran1*dnh+2):int(wran2*dnh)))
-   maxamp=5.0*maxval(amp(int(wran1*dnh+2):int(wran2*dnh)) +                 &
-    2.0*stdamp(int(wran1*dnh+2):int(wran2*dnh)))
+   maxamp=1.0*maxval(amp(int(wran1*dnh+2):int(wran2*dnh)) +                 &
+    10.0*stdamp(int(wran1*dnh+2):int(wran2*dnh)))
 else
    minamp=1.0e-7!minval(amp(int(wran1*dnh):int(wran2*dnh)))
    maxamp=maxval(amp(int(wran1*dnh+2):int(wran2*dnh))) !maximum amplitude for plotting

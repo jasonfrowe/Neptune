@@ -165,8 +165,9 @@ enddo
 open(unit=11,file='pixfit.dat')
 do i=1,npt
    pixel=poly(x(i),ixo,ax)
-   write(11,*) pixel,res(i)
+   write(11,*) pixel,res(i),yerr(i)
 enddo
+close(11)
 
 call pgpage()
 bb=0.0
