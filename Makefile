@@ -36,6 +36,10 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2 pixelfit fftpow
 
+joinpartsincl = precision.o 
+joinparts: joinparts.f90 $(joinpartsincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ joinparts.f90 $(joinpartsincl)
+
 gendataincl = precision.o ran2.o
 gendata: gendata.f90 $(gendataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)

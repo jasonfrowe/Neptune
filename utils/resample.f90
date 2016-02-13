@@ -59,8 +59,10 @@ elseif(iresampletype.eq.2)then
 
 elseif(iresampletype.eq.3)then
 
-   nbuf=1000 !break up resampling to managable size
-   nstep=(ns/nbuf)+1 !number of steps to cover sample size
+!   nbuf=1000 !break up resampling to managable size
+   nbuf=ns/int(ns/1000)
+   nstep=(ns/nbuf) !number of steps to cover sample size
+!   write(0,*) nbuf,int(ns/1000)
 
    !Here are the parameters that control the co-variance matrix and fitted
    !parameters
@@ -70,9 +72,10 @@ elseif(iresampletype.eq.3)then
    do k=1,nstep
       !number of data points in buffer
       nss=nbuf
-      if(k.eq.nstep)then !last step will have less points
+      if(k.eq.nstep)then !last step will have different points
          nss=ns-nbuf*(nstep-1)
       endif
+!      write(0,*) k,nss
 
       !times for resampling
       nbufstep=nbuf*(k-1) !location in resampled array
@@ -108,7 +111,7 @@ elseif(iresampletype.eq.3)then
 
 
       i1=max(1,i1)
-      i2=min(ns,i2)
+      i2=min(npt,i2)
 
       npts=i2-i1+1 !how much of the original sample are we using.
 

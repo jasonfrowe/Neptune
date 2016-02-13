@@ -162,6 +162,12 @@ do i=1,npt
 enddo
 !$OMP END PARALLEL DO
 
+open(unit=11,file='pixfit.dat')
+do i=1,npt
+   pixel=poly(x(i),ixo,ax)
+   write(11,*) pixel,res(i)
+enddo
+
 call pgpage()
 bb=0.0
 call plotdatascatter(npt,phase,res,yerr,bb)

@@ -88,7 +88,7 @@ call PGSCLP(0) !turn off clipping
 call pgvport(0.15,0.95,-1.8,0.95) !make room around the edges for labels
 call pgsci(1)
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
-call pgbox("BCLNTS1",0.0,0,"BCNTS1",0.0,0)
+call pgbox("BCLNTS",0.0,0,"BCNTS",0.0,0)
 call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.06*(bb(4)-bb(3)),0.0,0.5,         &
    "Frequency (\(0638)Hz)")
 call pgptxt(bb(1)-0.10*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
@@ -159,7 +159,7 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
 !   read(5,*)
 enddo
 
-call pgbox("BCLNTS1",0.0,0,"BCNTS1",0.0,0) !replot axes
+call pgbox("BCLNTS",0.0,0,"BCNTS",0.0,0) !replot axes
 
 call PGSCLP(1) !enable clipping
 

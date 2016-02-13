@@ -16,6 +16,7 @@ real(double), allocatable, dimension(:,:) :: Kernel
 !local vars
 integer, allocatable, dimension(:) :: nbd,iwa
 integer :: nrhs,info,nfit,i,j,k,npix,iprint,isave(44),n,m,ii,ikch
+real :: twork
 real, allocatable, dimension(:) :: bb
 real(double) :: loglikelihood,lgll,f,factr,pgtol,dsave(29)
 real(double), allocatable, dimension(:) :: yerr2,mu,std,ymodel,solin,   &
@@ -242,7 +243,8 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
       call pixelmodelv2(r,npars,npix,npord,sol1,npt,x,npixel)
       f=-loglikelihood(npt,x,y,r,Kernel,logDK)
-      write(0,*) "F: ",f
+      CALL CPU_TIME(twork)
+      write(0,*) "F: ",f,twork
       call gradient(nfit,f,g,nfitp,isol,sol1,npars,pars,npix,npord,npt, &
          x,y,yerr,npixel,Kernel,logDK)
       write(0,*) "G1: ",g(1)
