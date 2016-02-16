@@ -73,7 +73,7 @@ calcstats=1
 wran1=0.001!0.0008d0
 wran2=1.0!0.1!0.012d0
 nsampt=10  !sampling size
-nsampratet=1000 !how often to sample
+nsampratet=100 !how often to sample
 scaletype=1 !0-linear, 1=log
 
 !check that we have enough information from the commandline

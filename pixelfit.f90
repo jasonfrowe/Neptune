@@ -1,12 +1,12 @@
 program pixelfit
 use precision
 implicit none
-integer :: iargc,nmax,npt,npars,info,nrhs,ixo,iyo,i
+integer :: iargc,nmax,npt,npars,info,nrhs,ixo,iyo,i,np1,nxpixel,np2,nfit
 real tstart,tfinish
 real, allocatable, dimension(:) :: bb
 real(double) :: minx,mean,pixel,poly
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
- pars,alpha,yerr2,mu,std,res,phase,ax,ay
+ pars,alpha,yerr2,mu,std,res,phase,ax,ay,sol,psmod
 real(double), allocatable, dimension(:,:) :: Kernel,KernelZ
 character(80) :: filename
 
@@ -57,8 +57,17 @@ interface
       real(double), dimension(:) :: x,xnep,ynep,ax,ay
    end subroutine fitneptunepos
 end interface
+interface
+   subroutine pshapemodel(npt,x,ixo,ax,nfit,sol,psmod)
+      use precision
+      implicit none
+      integer :: npt,ixo,nfit
+      real(double), dimension(:) :: x,ax,sol,psmod
+   end subroutine pshapemodel
+end interface
 
 CALL CPU_TIME(tstart)
+write(0,*) "Tstart: ",tstart
 
 !check that we have enough information from the commandline
 if(iargc().lt.1)then !if not, spit out the Usage info and stop.
@@ -88,6 +97,19 @@ ixo=5 !order of polynomial to fit to x-positions
 iyo=5 !order of polynomial to fit to y-positions
 allocate(ax(ixo),ay(iyo))
 call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+
+pixel=poly(x(1),ixo,ax)
+nxpixel=1
+np1=int(pixel)
+do i=2,npt
+   pixel=poly(x(i),ixo,ax)
+   np2=int(pixel)
+   if(np2.ne.np1)then
+      nxpixel=nxpixel+1
+      np1=np2
+   endif
+enddo
+write(0,*) "Number of Pixels crossed X: ",nxpixel
 
 !plot the data
 allocate(bb(4))
@@ -162,16 +184,25 @@ do i=1,npt
 enddo
 !$OMP END PARALLEL DO
 
-open(unit=11,file='pixfit.dat')
-do i=1,npt
-   pixel=poly(x(i),ixo,ax)
-   write(11,*) pixel,res(i),yerr(i)
-enddo
-close(11)
-
 call pgpage()
 bb=0.0
 call plotdatascatter(npt,phase,res,yerr,bb)
+
+nfit=2+nxpixel
+allocate(sol(nfit))
+!sol(1)=A,sol(2)=phi,sol(3)=dA1...
+sol(1)=0.000589556
+sol(2)=4.21938
+sol(3:nfit)=1.0
+allocate(psmod(npt))
+call pshapemodel(npt,x,ixo,ax,nfit,sol,psmod)
+
+open(unit=11,file='pixfit.dat')
+do i=1,npt
+   pixel=poly(x(i),ixo,ax)
+   write(11,*) pixel,res(i),psmod(i)
+enddo
+close(11)
 
 call pgclos()
 
