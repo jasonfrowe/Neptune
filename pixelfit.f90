@@ -2,24 +2,26 @@ program pixelfit
 use precision
 implicit none
 integer :: iargc,nmax,npt,npars,info,nrhs,ixo,iyo,i,np1,nxpixel,np2,nfit
+integer, allocatable, dimension(:) :: isol
 real tstart,tfinish
 real, allocatable, dimension(:) :: bb
 real(double) :: minx,mean,pixel,poly
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
- pars,alpha,yerr2,mu,std,res,phase,ax,ay,sol,psmod
+ pars,alpha,yerr2,mu,std,res,phase,ax,ay,sol,psmod,oflux,pmod,smod
 real(double), allocatable, dimension(:,:) :: Kernel,KernelZ
 character(80) :: filename
 
 !These are F90 interfaces that allow one to pass assumed sized arrays
 !to subroutines.
 interface !reads in a three-column ascii space seperated file
-   subroutine getpdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
+   subroutine getpdata(filename,npt,nmax,x,y,yerr,oflux,pmod,smod,xpos, &
+    ypos,xnep,ynep,minx,mean)
       use precision
       implicit none
       integer, intent(inout) :: npt,nmax
       real(double), intent(inout) :: minx,mean
-      real(double), dimension(:), intent(inout) :: x,y,yerr,xpos,ypos,  &
-         xnep,ynep
+      real(double), dimension(:), intent(inout) :: x,y,yerr,oflux,pmod, &
+         smod,xpos,ypos,xnep,ynep
       character(80), intent(inout) :: filename
    end subroutine getpdata
 end interface
@@ -65,6 +67,15 @@ interface
       real(double), dimension(:) :: x,ax,sol,psmod
    end subroutine pshapemodel
 end interface
+interface
+   subroutine pfitter(npt,x,res,yerr,ixo,ax,nfit,sol,isol)
+      use precision
+      implicit none
+      integer :: npt,ixo,nfit
+      integer, dimension(:) :: isol
+      real(double), dimension(:) :: x,res,yerr,ax,sol
+   end subroutine pfitter
+end interface
 
 CALL CPU_TIME(tstart)
 write(0,*) "Tstart: ",tstart
@@ -79,10 +90,10 @@ endif
 call getarg(1,filename)
 
 nmax=80000 !initial guess for number of datapoints.
-allocate(x(nmax),y(nmax),yerr(nmax),xpos(nmax),ypos(nmax),xnep(nmax),   &
-   ynep(nmax))
+allocate(x(nmax),y(nmax),yerr(nmax),oflux(nmax),pmod(nmax),smod(nmax),  &
+   xpos(nmax),ypos(nmax),xnep(nmax),ynep(nmax))
 
-call getpdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
+call getpdata(filename,npt,nmax,x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,ynep,minx,mean)
 write(0,*) "Number of points read: ",npt !report how much data was read in
 
 !open PGPLOT device
@@ -90,6 +101,7 @@ call pgopen('/xserve')  !'?' lets the user choose the device.
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines
+call pgask(.false.)
 
 !need fits to the motion of Neptune - raw data is too noisy.
 !also means that pixel-crossings is now a linear function (good!)
@@ -189,11 +201,19 @@ bb=0.0
 call plotdatascatter(npt,phase,res,yerr,bb)
 
 nfit=2+nxpixel
-allocate(sol(nfit))
+allocate(sol(nfit),isol(nfit))
 !sol(1)=A,sol(2)=phi,sol(3)=dA1...
-sol(1)=0.000589556
-sol(2)=4.21938
+sol(1)=4.491939850254477E-004
+isol(1)=0
+sol(2)=4.23820851687563
+isol(2)=-1
 sol(3:nfit)=1.0
+isol(3:nfit)=-1
+
+write(0,*) "Start fitter.."
+!call fitter
+call pfitter(npt,x,res,yerr,ixo,ax,nfit,sol,isol)
+
 allocate(psmod(npt))
 call pshapemodel(npt,x,ixo,ax,nfit,sol,psmod)
 
@@ -204,6 +224,14 @@ do i=1,npt
 enddo
 close(11)
 
+!scale and shift data.
+x(1:npt)=x(1:npt)+minx
+y(1:npt)=(y(1:npt)-psmod(1:npt)+1.0)*mean
+yerr(1:npt)=yerr(1:npt)*mean
+pmod(1:npt)=pmod(1:npt)+mean*psmod(1:npt)
+call exportdata(npt,x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,ynep)
+
+
 call pgclos()
 
 CALL CPU_TIME(tfinish)
@@ -211,6 +239,27 @@ CALL CPU_TIME(tfinish)
 write(0,*) tstart,tfinish,tfinish-tstart
 
 end program pixelfit
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+subroutine exportdata(npt,x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,ynep)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+!import vars
+integer :: npt
+real(double), dimension(npt) :: x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,&
+  ynep
+!local vars
+integer :: i
+
+do i=1,npt
+   write(6,500) x(i),y(i),yerr(i),oflux(i),pmod(i),smod(i),xpos(i),     &
+     ypos(i),xnep(i),ynep(i)
+   500 format(10(1PE17.10,1X))
+enddo
+
+return
+end
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 function poly(x,nfit,ans)

@@ -57,8 +57,8 @@ return
 end subroutine getdata
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-subroutine getpdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,&
- mean)
+subroutine getpdata(filename,npt,nmax,x,y,yerr,oflux,pmod,smod,xpos,    &
+ ypos,xnep,ynep,minx,mean)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !Routine to readin data for pixelfit
 use precision
@@ -66,7 +66,8 @@ implicit none
 integer :: nunit,filestatus,i,nmax,npt
 real(double) :: minx,mean,time,flux,ferr,origflux,pmodel,spmodel,xn,yn, &
  xp,yp
-real(double), dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep
+real(double), dimension(:) :: x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,  &
+   ynep
 character(80) :: filename
 
 nunit=10
@@ -90,6 +91,9 @@ do
       x(i)=time
       y(i)=flux
       yerr(i)=ferr
+      oflux(i)=origflux
+      pmod(i)=pmodel
+      smod(i)=spmodel
       xpos(i)=xn
       ypos(i)=yn
       xnep(i)=xp

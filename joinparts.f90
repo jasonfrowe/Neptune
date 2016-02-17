@@ -145,7 +145,7 @@ do while(k.le.6)
 
    k=k+1
    if(k.le.6)then
-      write(filename2,'(A6,I1,A6)') "phot.p",k,".j.dat"
+      write(filename2,'(A6,I1,A7)') "phot.p",k,".jp.dat"
       write(0,*) "K: ",k
       write(0,'(A80)') filename2
       call getpdata(filename2,npt2,nmax,x2,y2,yerr2,oflux2,pmod2,smod2, &
@@ -176,7 +176,7 @@ allocate(ax(ixo),ay(iyo))
 call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
 
 mean=sum(y(1:npt))/dble(npt)
-a=0.000589556
+a=0.0!0.000589556
 b=4.21938
 do i=1,npt
    pixel=poly(x(i),ixo,ax)

@@ -48,7 +48,7 @@ fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort
 fftpow: fftpow.f90 $(fftpowincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
-pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.o fitneptunepos.o lfit.o pshapemodel.o
+pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.o fitneptunepos.o lfit.o pshapemodel.o pfitter.o lbfgsb.o timer.o linpack.o
 pixelfit: pixelfit.f90 $(pixelfitincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfit.f90 $(pixelfitincl) $(LIBS)
 
@@ -149,6 +149,8 @@ ovrwrt.o: $(UTILS)ovrwrt.f
 	$(F90) $(FFLAGS) $(UTILS)ovrwrt.f
 pshapemodel.o: $(UTILS)pshapemodel.f90
 	$(F90) $(FFLAGS) $(UTILS)pshapemodel.f90
+pfitter.o: $(UTILS)pfitter.f90
+	$(F90) $(FFLAGS) $(UTILS)pfitter.f90
 
 # Removing object files
 .PHONY : clean
