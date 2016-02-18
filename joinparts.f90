@@ -2,7 +2,7 @@ program joinparts
 use precision
 implicit none
 integer :: npt1,npt2,nmax,i,j,k,npt,ixo,iyo
-real(double) :: t1,t2,f1,f2,a,b,Pi,mean,pixel,poly
+real(double) :: t1,t2,f1,f2,a,b,Pi,mean,pixel,poly,dy
 real(double), allocatable, dimension(:) :: x1,y1,yerr1,xpos1,ypos1,     &
    xnep1,ynep1,x2,y2,yerr2,xpos2,ypos2,xnep2,ynep2,x,y,yerr,xpos,ypos,  &
    xnep,ynep,oflux1,pmod1,smod1,oflux2,pmod2,smod2,oflux,pmod,smod,ax,ay
@@ -40,14 +40,14 @@ allocate(x(nmax),y(nmax),yerr(nmax),xpos(nmax),ypos(nmax),xnep(nmax),   &
 !call getpdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
 !write(0,*) "Number of points read: ",npt !report how much data was read in
 
-filename1="phot.p1.j.dat"
+filename1="phot.p1.jp.dat"
 allocate(x1(nmax),y1(nmax),yerr1(nmax),xpos1(nmax),ypos1(nmax),         &
   xnep1(nmax),ynep1(nmax),oflux1(nmax),pmod1(nmax),smod1(nmax))
 call getpdata(filename1,npt1,nmax,x1,y1,yerr1,oflux1,pmod1,smod1,xpos1, &
   ypos1,xnep1,ynep1)
 write(0,*) "Number of points read: ",npt1
 
-filename2="phot.p2.j.dat"
+filename2="phot.p2.jp.dat"
 allocate(x2(nmax),y2(nmax),yerr2(nmax),xpos2(nmax),ypos2(nmax),         &
   xnep2(nmax),ynep2(nmax),oflux2(nmax),pmod2(nmax),smod2(nmax))
 call getpdata(filename2,npt2,nmax,x2,y2,yerr2,oflux2,pmod2,smod2,xpos2, &
@@ -184,6 +184,31 @@ do i=1,npt
    xnep(i)=pixel
 enddo
 
+!remove any last jumps.
+dy=y(1443)-y(1442)
+y(1443:npt)=y(1443:npt)-dy
+dy=y(6215)-y(6214)
+y(6215:npt)=y(6215:npt)-dy
+dy=y(50581)-y(50580)
+y(50581:npt)=y(50581:npt)-dy
+dy=y(51111)-y(51110)
+y(51111:npt)=y(51111:npt)-dy
+dy=y(52300)-y(52299)
+y(52300:npt)=y(52300:npt)-dy
+dy=y(57798)-y(57797)
+y(57798:npt)=y(57798:npt)-dy
+dy=y(62099)-y(62098)
+y(62099:npt)=y(62099:npt)-dy
+dy=y(62100)-y(62099)
+y(62100:npt)=y(62100:npt)-dy
+dy=y(61769)-y(61767)
+y(61768:npt)=y(61768:npt)-dy
+dy=y(65923)-y(65922)
+y(65923:npt)=y(65923:npt)-dy
+dy=y(66432)-y(66431)
+y(66432:npt)=y(66432:npt)-dy
+dy=y(68468)-y(68467)
+y(68468:npt)=y(68468:npt)-dy
 
 !scale and shift data.
 call exportdata(npt,x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,ynep)
