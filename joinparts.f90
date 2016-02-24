@@ -141,6 +141,7 @@ do while(k.le.6)
    xpos1=xpos2
    ypos1=ypos2
    xnep1=xnep2
+   ynep1=ynep2
    i=j
 
    k=k+1
