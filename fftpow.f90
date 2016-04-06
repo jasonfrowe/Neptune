@@ -52,6 +52,15 @@ interface
       real(double), dimension(:) :: trs,frs
    end subroutine poorwavelet
 end interface
+interface
+   subroutine fitfft(nh,nfft,amp,dt)
+      use precision
+      implicit none
+      integer :: nh,nfft
+      real(double) :: dt
+      real(double), dimension(:) :: amp
+   end subroutine fitfft
+end interface
 
 CALL CPU_TIME(tstart) !for timing runtimes
 
@@ -60,17 +69,17 @@ CALL CPU_TIME(tstart) !for timing runtimes
 cd2uhz=1.0d6/86400.0d0
 
 !parameters controling resampling and FFTs
-nover=10 !oversampling for FFT
+nover=5 !oversampling for FFT
 gap=10.0d0 !identifying gaps in data and replace with white noise.
 !resampling routine
 ! 1-linear interpolation
 ! 2-sinc interpolation (not working)
 ! 3-Gaussian-process predictive Mean
-iresampletype=3
+iresampletype=1
 !calcstats 0-no,1-yes
 calcstats=1
 !wavelet parametrs
-wran1=0.001!0.0008d0
+wran1=0.00!1!0.0008d0
 wran2=1.0!0.1!0.012d0
 nsampt=10  !sampling size
 nsampratet=100 !how often to sample
@@ -139,6 +148,8 @@ allocate(ferr2(ns))
 ferr2=0.1d0 !plotdatascatter wants an error for input
 call plotdatascatter(ns,trs,frs,ferr2,bb)
 
+!goto 999
+
 !number of frequency/amplitudes from fftspec to be returned
 nh=(nfft/2)+1
 dnh=dble(nh) !precompute int->dble
@@ -159,6 +170,9 @@ bb=0.0 !auto-scale the plot
 call plotpspec(nh,nfft,amp,dt,bb)
 !plot stats
 if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt)
+
+!fit power spectrum
+call fitfft(nh,nfft,amp,dt)
 
 call pgpage()
 bb=0.0
@@ -211,6 +225,7 @@ call poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,maxamp,bb,  &
    scaletype)
 
 
+999 continue !statement for jumping to the end to make some simple plots
 call pgclos()
 
 CALL CPU_TIME(tfinish)

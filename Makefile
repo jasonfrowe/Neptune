@@ -44,7 +44,7 @@ gendataincl = precision.o ran2.o
 gendata: gendata.f90 $(gendataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)
 
-fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o heatlut.o ovrwrt.o
+fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o heatlut.o ovrwrt.o fitfft.o
 fftpow: fftpow.f90 $(fftpowincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
@@ -61,6 +61,8 @@ fitdata: fitdata.f90 $(fitdataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdata.f90 $(fitdataincl) $(LIBS) 
 
 #building object libraries
+fitfft.o: $(UTILS)fitfft.f90
+	$(F90) $(FFLAGS) $(UTILS)fitfft.f90
 precision.o: $(UTILS)precision.f90
 	$(F90) $(FFLAGS) $(UTILS)precision.f90
 getdata.o: $(UTILS)getdata.f90
