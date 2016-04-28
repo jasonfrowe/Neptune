@@ -84,12 +84,13 @@ real(double) :: dt
 real(double), dimension(nh) :: amp
 !local vars
 integer :: i
-real :: minx,maxx,miny,maxy,diff,dumr
-real, allocatable, dimension(:) :: x,y
+real :: minx,maxx,miny,maxy,diff,dumr,rcd2uhz
+real, allocatable, dimension(:) :: x,y,rbb
 real(double) :: f,p,cd2uhz
 
 !convert from c/d to uHz
 cd2uhz=1.0d6/86400.0d0
+rcd2uhz=real(cd2uhz)
 
 nplot=nh-1
 !PGPlot only accepts real
@@ -140,11 +141,24 @@ endif
 call pgsci(1)
 call pgvport(0.15,0.95,0.20,0.95) !make room around the edges for labels
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
-call pgbox("BLCNTS",0.0,0,"BLCNTVS",0.0,0)
+call pgbox("BLNTS",0.0,0,"BCLNTVS",0.0,0)
 call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.20*(bb(4)-bb(3)),0.0,0.5,         &
    "Frequency (\(0638)Hz)")
 call pgptxt(bb(1)-0.10*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
    "PD (ppm\u2\d \(0638)Hz\u-1\d)")
+
 call pgline(nplot,x,y)   !plot line
+
+allocate(rbb(4))
+rbb(1)=log10(10.0**bb(1)/rcd2uhz)
+rbb(2)=log10(10.0**bb(2)/rcd2uhz)
+rbb(3)=bb(3)
+rbb(4)=bb(4)
+call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
+call pgbox("CLMTS",0.0,0,"",0.0,0)
+call pgptxt((rbb(1)+rbb(2))/2.0,rbb(4)+0.15*(rbb(4)-rbb(3)),0.0,0.5,         &
+   "Frequency (c/d)")
+
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !restore plot scale
 
 end subroutine plotpspec

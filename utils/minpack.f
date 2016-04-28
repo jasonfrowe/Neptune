@@ -1341,6 +1341,7 @@ c
 c     compute the initial column norms and initialize several arrays.
 c
       do 10 j = 1, n
+c               write(0,*) "hello",n
          acnorm(j) = enorm(m,a(1,j))
          rdiag(j) = acnorm(j)
          wa(j) = rdiag(j)

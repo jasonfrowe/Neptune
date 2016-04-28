@@ -53,12 +53,12 @@ interface
    end subroutine poorwavelet
 end interface
 interface
-   subroutine fitfft(nh,nfft,amp,dt)
+   subroutine fitfft(nh,nfft,amp,dt,nover,meanamp,stdamp)
       use precision
       implicit none
-      integer :: nh,nfft
+      integer :: nh,nfft,nover
       real(double) :: dt
-      real(double), dimension(:) :: amp
+      real(double), dimension(:) :: amp,meanamp,stdamp
    end subroutine fitfft
 end interface
 
@@ -94,7 +94,7 @@ endif
 !read in filename containing data (3 columns)
 call getarg(1,filename)
 
-nmax=1700000 !maximum number of data points
+nmax=2000000 !maximum number of data points
 allocate(time(nmax),flux(nmax),ferr(nmax))
 
 call readfftdata(filename,nmax,npt,time,flux,ferr,minx,mean)
@@ -134,6 +134,7 @@ bb=0.0
 !call plotdatascatter(npt,time,flux,ferr,bb)
 
 !get stats about datasizes
+!this routine can be found in resample.f90
 call getdtns(npt,time,nover,dt,ns,nfft,mintime,maxtime)
 !write(0,*) "dt, ns, nfft"
 !write(0,*) dt,ns,nfft
@@ -164,15 +165,15 @@ allocate(meanamp(nh),stdamp(nh))
 nbin=nh/200 !size of window for stats
 if(calcstats.eq.1) call fftstats(nh,amp,meanamp,stdamp,nbin)
 
+!fit power spectrum
+call fitfft(nh,nfft,amp,dt,nover,meanamp,stdamp)
+
 !plot Power-spectrum
 call pgpage()
 bb=0.0 !auto-scale the plot
 call plotpspec(nh,nfft,amp,dt,bb)
 !plot stats
 if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt)
-
-!fit power spectrum
-call fitfft(nh,nfft,amp,dt)
 
 call pgpage()
 bb=0.0

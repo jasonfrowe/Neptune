@@ -90,7 +90,7 @@ real(double) :: cd2uhz,f,p,p2,sig
 cd2uhz=1.0d6/86400.0d0
 
 !noise threshold
-sig=3.6
+sig=1.0
 
 nplot=nh-1
 !PGPlot only accepts real
@@ -134,7 +134,7 @@ real(double) :: cd2uhz,f,p,p2,sig
 cd2uhz=1.0d6/86400.0d0
 
 !noise threshold
-sig=3.0
+sig=1.0
 
 nplot=nh-1
 !PGPlot only accepts real

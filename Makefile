@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -parallel -ipo -openmp -mkl
+OPT1 = -O3 -parallel -openmp -mkl
 #OPT1 = -O0 -g -CB -openmp -mkl
 #OPT1 = -O3
 OPT2 = -heap-arrays 0 
@@ -36,6 +36,10 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2 pixelfit fftpow
 
+figure3incl = 
+figure3: figure3.f90 $(figure3incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ figure3.f90 $(figure3incl) $(LIBS2)
+
 joinpartsincl = precision.o fitneptunepos.o lfit.o
 joinparts: joinparts.f90 $(joinpartsincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ joinparts.f90 $(joinpartsincl)
@@ -44,7 +48,7 @@ gendataincl = precision.o ran2.o
 gendata: gendata.f90 $(gendataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)
 
-fftpowincl = precision.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o heatlut.o ovrwrt.o fitfft.o
+fftpowincl = precision.o fittingfft.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o heatlut.o ovrwrt.o fitfft.o minpack.o 
 fftpow: fftpow.f90 $(fftpowincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
 
@@ -61,6 +65,8 @@ fitdata: fitdata.f90 $(fitdataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdata.f90 $(fitdataincl) $(LIBS) 
 
 #building object libraries
+fittingfft.o: $(UTILS)fittingfft.f90
+	$(F90) $(FFLAGS) $(UTILS)fittingfft.f90
 fitfft.o: $(UTILS)fitfft.f90
 	$(F90) $(FFLAGS) $(UTILS)fitfft.f90
 precision.o: $(UTILS)precision.f90

@@ -10,7 +10,8 @@ real(double), dimension(:) :: trs,frs
 integer :: i,j1,j2,j,k,nwave,nfftl,nhl,nsampd2,nss,debug,i1,i2,nplot,ncol,&
    ia1,nbin
 integer, allocatable, dimension(:,:) :: ia
-real:: r,g,b,pt1,pt2
+real:: r,g,b,pt1,pt2,rcd2uhz
+real, allocatable, dimension(:) :: rbb
 real(double) :: cd2uhz,f,lminamp,lmaxamp,lamp,f1,f2,dtd2,lfmin,lfmax,   &
    dlf,dnplot,lf1,lf2,gaussian,g1,g2,g3,zg,wg
 real(double), allocatable, dimension(:) :: amp,frsl,meanamp,stdamp
@@ -30,6 +31,7 @@ end interface
 
 !convert from c/d to uHz
 cd2uhz=1.0d6/86400.0d0
+rcd2uhz=real(cd2uhz)
 
 !precompute half the sample size
 nsampd2=nsamp/2
@@ -84,15 +86,26 @@ bb(4)=trs(ns)
 !write(0,*) bb(1),bb(2),bb(3),bb(4)
 !read(5,*)
 
+allocate(rbb(4))
+rbb(1)=log10(10.0**bb(1)/rcd2uhz)
+rbb(2)=log10(10.0**bb(2)/rcd2uhz)
+rbb(3)=bb(3)
+rbb(4)=bb(4)
+
 call PGSCLP(0) !turn off clipping
 call pgvport(0.15,0.95,-1.8,0.95) !make room around the edges for labels
 call pgsci(1)
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
-call pgbox("BCLNTS",0.0,0,"BCNTS",0.0,0)
-call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.06*(bb(4)-bb(3)),0.0,0.5,         &
+call pgbox("CLTS",0.0,0,"BCNTS",0.0,0)
+call pgptxt((bb(1)+bb(2))/2.0,bb(4)+0.06*(bb(4)-bb(3)),0.0,0.5,         &
    "Frequency (\(0638)Hz)")
 call pgptxt(bb(1)-0.10*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
    "Time (days)")
+
+call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
+call pgbox("BNLTS",0.0,0,"",0.0,0)
+
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !restore plot scale
 
 do i=1,ncol
    call heatlut(i*4-3,r,g,b)
@@ -170,7 +183,9 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
 !   read(5,*)
 enddo
 
-call pgbox("BCLNTS",0.0,0,"BCNTS",0.0,0) !replot axes
+call pgbox("CLTS",0.0,0,"BCNTS",0.0,0) !replot axes
+call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
+call pgbox("BNLTS",0.0,0,"",0.0,0)
 
 call PGSCLP(1) !enable clipping
 
