@@ -142,12 +142,15 @@ allocate(solt1(nfit),solt2(nfit),solt3(nfit))
 solt1=sol
 solt2=sol
 solt3=sol
-solt1(2)=0.0d0
-solt1(5)=0.0d0
+solt1(11)=0.0d0
 solt2(1)=0.0d0
-solt2(5)=0.0d0
+solt2(2)=0.0d0
+solt2(8)=0.0d0
+solt2(11)=0.0d0
 solt3(1)=0.0d0
-solt3(2)=0.0d0
+solt3(5)=0.0d0
+solt3(8)=0.0d0
+solt3(11)=0.0d0
 write(0,*) "sol:"
 write(0,'(15(1PE17.10,1X))') sol
 open(unit=11,file="fittest.dat")

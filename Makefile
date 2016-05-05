@@ -36,6 +36,10 @@ UTILS = utils/
 #Listing of programs to create.
 all: fitdatav2 pixelfit fftpow
 
+fftplotincl = 
+fftplot: fftplot.f90 $(fftplotinc)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fftplot.f90 $(fftplotincl) $(LIBS2)
+
 figure3incl = 
 figure3: figure3.f90 $(figure3incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ figure3.f90 $(figure3incl) $(LIBS2)

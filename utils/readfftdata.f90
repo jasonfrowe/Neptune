@@ -44,7 +44,7 @@ npt=i-1
 
 !scale and shift data.
 minx=minval(time(1:npt))
-time(1:npt)=time(1:npt)-minx
+!time(1:npt)=time(1:npt)-minx
 mean=Sum(flux(1:npt))/dble(npt)
 !flux(1:npt)=-(flux(1:npt)-mean)
 flux(1:npt)=flux(1:npt)-mean
