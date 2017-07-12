@@ -93,19 +93,18 @@ rbb(3)=bb(3)
 rbb(4)=bb(4)
 
 call PGSCLP(0) !turn off clipping
-call pgvport(0.15,0.95,-1.8,0.95) !make room around the edges for labels
+call pgvport(0.15,0.95,-1.5,0.95) !make room around the edges for labels (-1.8)
 call pgsci(1)
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
-call pgbox("CLTS",0.0,0,"BCNTS",0.0,0)
-call pgptxt((bb(1)+bb(2))/2.0,bb(4)+0.06*(bb(4)-bb(3)),0.0,0.5,         &
-   "Frequency (\(0638)Hz)")
+call pgbox("BCLTS",0.0,0,"BCNTS",0.0,0)
+!call pgptxt((bb(1)+bb(2))/2.0,bb(4)+0.06*(bb(4)-bb(3)),0.0,0.5,         &
+!   "Frequency (\(0638)Hz)")
 call pgptxt(bb(1)-0.10*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
    "Time (days)")
 
-call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
-call pgbox("BNLTS",0.0,0,"",0.0,0)
-
-call pgwindow(bb(1),bb(2),bb(3),bb(4)) !restore plot scale
+!call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
+!call pgbox("BNLTS",0.0,0,"",0.0,0)
+!call pgwindow(bb(1),bb(2),bb(3),bb(4)) !restore plot scale
 
 do i=1,ncol
    call heatlut(i*4-3,r,g,b)
@@ -183,9 +182,9 @@ do i=nsamprate/2,ns+nsamprate/2,nsamprate
 !   read(5,*)
 enddo
 
-call pgbox("CLTS",0.0,0,"BCNTS",0.0,0) !replot axes
-call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
-call pgbox("BNLTS",0.0,0,"",0.0,0)
+call pgbox("BCLTS",0.0,0,"BCNTS",0.0,0) !replot axes
+!call pgwindow(rbb(1),rbb(2),rbb(3),rbb(4)) !plot scale
+!call pgbox("BNLTS",0.0,0,"",0.0,0)
 
 call PGSCLP(1) !enable clipping
 

@@ -28,7 +28,9 @@ call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 call pglabel("Frequency (\(0638)Hz)","Normalized Amplitude","")
 
+call pgsci(14)
 call pgline(npt,freq,amp)
+call pgsci(1)
 
 allocate(px(2),py(2))
 
@@ -47,6 +49,9 @@ call readnorm(normfile,nmax,nptn,freqn,ampn)
 call pgsci(2)
 call pgline(nptn,freqn,ampn)
 call pgsci(1)
+
+!replot the box
+call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 
 call pgclos()
 

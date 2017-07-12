@@ -16,7 +16,7 @@ integer, target :: nfit
 integer, allocatable, dimension(:) :: iwa,pbin
 integer, allocatable, dimension(:), target :: isol
 real(double) :: cd2uhz,tollm,dnfft,pmodel,ftemp,ptemp,bmin,bmax,thres,  &
-   dN,Pm,opn
+   dN,Pm,opn,dfac,dnover
 real(double), allocatable, dimension(:), target :: p,f,sol
 real(double), allocatable, dimension(:) :: fvec,wa,solt1,solt2,     &
    solt3,solin
@@ -38,36 +38,45 @@ nfit=13
 
 !initial guess at best fit parameters
 allocate(sol(nfit),isol(nfit))
-sol=0.0d0
- sol(1)=1.96e-6
+sol=0.0d0 !default
+isol=0    !default
+ sol(1)=1.3e-3
 isol(1)=1
- sol(2)=9.01e6  !A
+
+ sol(2)=9.19e7  !A
 isol(2)=1
- sol(3)=1.69e1  !th
+ sol(3)=2.76e4  !th
 isol(3)=1
- sol(4)=2.27  !alpha
+ sol(4)=1.15  !alpha
 isol(4)=1
 
- sol(5)=9.97e4  !A
+ sol(5)=1.31e5  !A
 isol(5)=1
- sol(6)=8.30e-2 !th
+ sol(6)=7.07e-2 !th
 isol(6)=1
- sol(7)=4.38  !alpha
+ sol(7)=3.47  !alpha
 isol(7)=1
 
- sol(8)=2.0d4 !amplitude
-isol(8)=1
- sol(9)=1.0 !vmax
-isol(9)=1
- sol(10)=25.0 !sigma (width)
-isol(10)=1
+! sol(8)=2.0d0 !amplitude
+!isol(8)=1
+! sol(9)=3220.0 !vmax
+!isol(9)=1
+! sol(10)=100.0 !sigma (width)
+!isol(10)=1
 
- sol(11)=1.0d-3 !amplitude
+ sol(11)=1.8d-2 !amplitude
 isol(11)=1
- sol(12)=3000.0 !vmax
+ sol(12)=3200.0 !vmax
 isol(12)=1
  sol(13)=100.0 !sigma (width)
 isol(13)=1
+
+! sol(11)=1.0d-3 !amplitude
+!isol(11)=1
+! sol(12)=2462.0 !vmax
+!isol(12)=1
+! sol(13)=100.0 !sigma (width)
+!isol(13)=1
 
 
 allocate(solin(nfit))
@@ -80,9 +89,13 @@ do i=1,nfit
 enddo
 
 
+!convert int to dble
+dnfft=dble(nfft)
+dnover=dble(nover)
+!factor to convert to spectral density
+dfac=dt*dnfft/(cd2uhz*dnover)
 !maximum number of datapoints
 npt=nh-1
-dnfft=dble(nfft)
 allocate(f(nh-1),p(nh-1))
 nbin=nh/int(cd2uhz*dble(nh-1)/(dt*dnfft)/4.0)
 write(0,*) "mf:",cd2uhz*dble(nh-1)/(dt*dnfft),nbin
@@ -97,7 +110,7 @@ do i=1+nbin,nh,nbin
       !calculate frequency
       ftemp=cd2uhz*dble(j-1)/(dt*dnfft)
       !calculate power
-      ptemp=1.0d12*amp(j)*amp(j)/ftemp
+      ptemp=1.0d12*amp(j)*amp(j)/dfac
       f(npt)=f(npt)+ftemp
       p(npt)=p(npt)+ptemp
    enddo
@@ -138,59 +151,60 @@ do i=1,nfit
    endif
 enddo
 
-allocate(solt1(nfit),solt2(nfit),solt3(nfit))
-solt1=sol
-solt2=sol
-solt3=sol
-solt1(11)=0.0d0
-solt2(1)=0.0d0
-solt2(2)=0.0d0
-solt2(8)=0.0d0
-solt2(11)=0.0d0
-solt3(1)=0.0d0
-solt3(5)=0.0d0
-solt3(8)=0.0d0
-solt3(11)=0.0d0
+!!will output data with fit removed
+!allocate(solt1(nfit),solt2(nfit),solt3(nfit))
+!solt1=sol
+!solt2=sol
+!solt3=sol
+!solt1(11)=0.0d0
+!solt2(1)=0.0d0
+!solt2(2)=0.0d0
+!solt2(8)=0.0d0
+!solt2(11)=0.0d0
+!solt3(1)=0.0d0
+!solt3(5)=0.0d0
+!solt3(8)=0.0d0
+!solt3(11)=0.0d0
 write(0,*) "sol:"
 write(0,'(15(1PE17.10,1X))') sol
-open(unit=11,file="fittest.dat")
+!open(unit=11,file="fittest.dat")
 do i=2,nh
    ftemp=cd2uhz*dble(i-1)/(dt*dnfft)
-   ptemp=1.0d12*amp(i)*amp(i)/ftemp
-   write(11,'(10(1PE17.10,1X))') ftemp,ptemp,pmodel(nfit,sol,ftemp),    &
-    pmodel(nfit,solt1,ftemp),pmodel(nfit,solt2,ftemp),pmodel(nfit,solt3,ftemp)
-   meanamp(i)=sqrt(ftemp*pmodel(nfit,sol,ftemp)/1.0d12)
-   stdamp(i)=sqrt(ftemp*pmodel(nfit,sol,ftemp)*thres/1.0d12)-meanamp(i)
+   ptemp=1.0d12*amp(i)*amp(i)/dfac
+!   write(11,'(10(1PE17.10,1X))') ftemp,ptemp,pmodel(nfit,sol,ftemp),    &
+!    pmodel(nfit,solt1,ftemp),pmodel(nfit,solt2,ftemp),pmodel(nfit,solt3,ftemp)
+   meanamp(i)=sqrt(dfac*pmodel(nfit,sol,ftemp)/1.0d12)
+   stdamp(i)=sqrt(dfac*pmodel(nfit,sol,ftemp)*thres/1.0d12)-meanamp(i)
 enddo
-close(11)
+!close(11)
 meanamp(1)=meanamp(2)
 stdamp(1)=stdamp(2)
 
 
-!binning
-nbins=100  !number of bins
-bmin=0.0  !minimum range for binning
-bmax=10.0 !maximum range for binning
-allocate(pbin(nbins))
-pbin=0 !initialize bin counts to zero
-do i=2,nh
-   ftemp=cd2uhz*dble(i-1)/(dt*dnfft)
-   if(ftemp.gt.100.0)then
-      ptemp=1.0d12*amp(i)*amp(i)/ftemp/pmodel(nfit,sol,ftemp) !scale p by model
-      bin=int(dble(nbins)*(ptemp-bmin)/(bmax-bmin))+1
-      if((bin.gt.0).and.(bin.le.nbins))then
-         pbin(bin)=pbin(bin)+1
-      endif
-   endif
-enddo
-bsum=sum(pbin(1:nbins))
-open(unit=11,file="pbin.dat")
-do i=1,nbins
-!   write(0,*) bmin+(dble(i)+0.5)/dble(nbins)*(bmax-bmin),pbin(i)
-!   write(11,'(F7.3,1X,F9.6)') bmin+(dble(i)+0.5)/dble(nbins)*(bmax-bmin),dble(pbin(i))/dble(bsum)
-   write(11,'(F7.3,1X,I6)') bmin+(dble(i)+0.5)/dble(nbins)*(bmax-bmin),pbin(i)
-enddo
-close(11)
+!!bin the data and output it
+!nbins=100  !number of bins
+!bmin=0.0  !minimum range for binning
+!bmax=10.0 !maximum range for binning
+!allocate(pbin(nbins))
+!pbin=0 !initialize bin counts to zero
+!do i=2,nh
+!   ftemp=cd2uhz*dble(i-1)/(dt*dnfft)
+!   if(ftemp.gt.100.0)then
+!      ptemp=1.0d12*amp(i)*amp(i)/ftemp/pmodel(nfit,sol,ftemp) !scale p by model
+!      bin=int(dble(nbins)*(ptemp-bmin)/(bmax-bmin))+1
+!      if((bin.gt.0).and.(bin.le.nbins))then
+!         pbin(bin)=pbin(bin)+1
+!      endif
+!   endif
+!enddo
+!bsum=sum(pbin(1:nbins))
+!open(unit=11,file="pbin.dat")
+!do i=1,nbins
+!!   write(0,*) bmin+(dble(i)+0.5)/dble(nbins)*(bmax-bmin),pbin(i)
+!!   write(11,'(F7.3,1X,F9.6)') bmin+(dble(i)+0.5)/dble(nbins)*(bmax-bmin),dble(pbin(i))/dble(bsum)
+!   write(11,'(F7.3,1X,I6)') bmin+(dble(i)+0.5)/dble(nbins)*(bmax-bmin),pbin(i)
+!enddo
+!close(11)
 
 
 return

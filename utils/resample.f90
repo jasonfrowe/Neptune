@@ -38,7 +38,7 @@ if(iresampletype.eq.1)then
             dtime=time(i1)-time(i1-1)
             if((dtime.gt.gap*dt).and.(gap.gt.0.0d0))then
                fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
-!               fs=0.0!fs+gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
+               !fs=0.0!fs+gasdev(seed)*(ferr(i1-1)+ferr(i1))/2.0d0
             else
                fs=flux(i1-1)+(flux(i1)-flux(i1-1))*(ts-time(i1-1))/dtime
             endif
@@ -245,7 +245,7 @@ enddo
 !sort dts to get median dt
 allocate(p(ndt))
 call rqsort(ndt,dts,p)
-dt=dts(p(ndt/2))
+dt=dts(max(1,p(ndt/2)))
 !write(0,*) "dt: ",dt
 deallocate(dts,p)
 

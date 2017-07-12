@@ -134,7 +134,7 @@ call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
 npars=4 !number of parameters used for model of the matrix
 allocate(pars(npars))  !model parameters for Kernel generation.
 pars(1)=1.0d0 !amp scale for exp
-pars(2)=0.69d0/4.0d0 !length scale for exp
+pars(2)=0.72d0 !length scale for exp
 pars(3)=1.0 !second amp scale
 pars(4)=500.0 !second length scale
 

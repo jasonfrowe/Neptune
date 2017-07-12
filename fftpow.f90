@@ -3,7 +3,8 @@ program fftpow
 use precision
 implicit none
 integer :: nmax,npt,iargc,iresampletype,seed,nover,ns,nfft,debug,nh,    &
-   nbin,nsamp,nsamprate,nfftl,nhl,scaletype,calcstats,nsampt,nsampratet
+   nbin,nsamp,nsamprate,nfftl,nhl,scaletype,calcstats,nsampt,nsampratet,&
+   isize,calcfit
 integer, dimension(3) :: now
 real :: tstart,tfinish
 real, allocatable, dimension(:) :: bb
@@ -78,6 +79,8 @@ gap=10.0d0 !identifying gaps in data and replace with white noise.
 iresampletype=1
 !calcstats 0-no,1-yes
 calcstats=1
+!calcuate fit 0-no,1-yes
+calcfit=0
 !wavelet parametrs
 wran1=0.00!1!0.0008d0
 wran2=1.0!0.1!0.012d0
@@ -139,7 +142,7 @@ call getdtns(npt,time,nover,dt,ns,nfft,mintime,maxtime)
 !write(0,*) "dt, ns, nfft"
 !write(0,*) dt,ns,nfft
 
-debug=1 !if =1, then resampled lightcurve is writen to "interpolate.dat"
+debug=0 !if =1, then resampled lightcurve is writen to "interpolate.dat"
 allocate(trs(ns),frs(nfft)) !allocate space for resampled
 frs=0.0d0 !needs to be initiated to zero for zero-padding for oversampling
 call resample(npt,time,flux,ferr,ns,trs,frs,iresampletype,seed,dt,      &
@@ -157,23 +160,24 @@ dnh=dble(nh) !precompute int->dble
 allocate(amp(nh))
 
 !calculate amplitude spectrum
-debug=1
+debug=1 !if debug=1 then fft.dat is written with FT data.
 call fftspec(nfft,frs,amp,ns,dt,debug)
 
 !calculate running mean and S/N=3 estimate
 allocate(meanamp(nh),stdamp(nh))
 nbin=nh/200 !size of window for stats
-if(calcstats.eq.1) call fftstats(nh,amp,meanamp,stdamp,nbin)
+if(calcstats.eq.1) call fftstats(nh,nover,amp,meanamp,stdamp,nbin)
 
 !fit power spectrum
-call fitfft(nh,nfft,amp,dt,nover,meanamp,stdamp)
+if (calcfit.eq.1) call fitfft(nh,nfft,amp,dt,nover,meanamp,stdamp)
 
 !plot Power-spectrum
 call pgpage()
 bb=0.0 !auto-scale the plot
-call plotpspec(nh,nfft,amp,dt,bb)
+isize=0 !regular sized
+call plotpspec(nh,nfft,nover,amp,dt,bb,isize)
 !plot stats
-if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt)
+if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt,nover)
 
 call pgpage()
 bb=0.0
@@ -184,7 +188,7 @@ if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
 
 call pgpage()
 bb=0.0
-bb(1)=log10(5.0)
+bb(1)=log10(1.0)
 bb(2)=log10(min(500.0,cd2uhz*dble(nh-1)/(dt*dble(nfft))))
 call plotspec(nh,nfft,amp,dt,bb)
 if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
@@ -212,14 +216,15 @@ bb(1)=log10(real(f))
 f=cd2uhz*(wran2*dnhl-1.0)/(dt*dble(nfftl))
 !write(0,*) "fff:",f
 bb(2)=log10(real(f))
+isize=1 !plot larger pspec
 if(scaletype.eq.0)then
    call plotspec(nh,nfft,amp,dt,bb)
    !plot stats
    if(calcstats.eq.1) call plotstats(nh,meanamp,stdamp,nfft,dt)
 else
-   call plotpspec(nh,nfft,amp,dt,bb)
+   call plotpspec(nh,nfft,nover,amp,dt,bb,isize)
    !plot stats
-   if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt)
+   if(calcstats.eq.1) call plotpstats(nh,meanamp,stdamp,nfft,dt,nover)
 endif
 call pgpanl(1,1)
 call poorwavelet(ns,trs,frs,nover,dt,nsamp,nsamprate,minamp,maxamp,bb,  &
