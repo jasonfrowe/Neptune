@@ -2,3 +2,5 @@
 /Makefile
 *.mod
 *.o
+/.cproject
+/.project
