@@ -104,9 +104,7 @@ do i=5,npt-5
 !   read(5,*)
 
 enddo
-!do i=npt-4,npt
-!   npixel(i)=npixel(i-1)
-!enddo
+
 
 currentpixel=1
 i=1  !counter

@@ -2,9 +2,21 @@ subroutine getdata(filename,npt,nmax,x,y,yerr,xpos,ypos,xnep,ynep,minx,mean)
 use precision
 implicit none
 integer :: npt,nmax,nunit,filestatus,i,npix
-real(double) :: time,flux,dumr,sky,xp,yp,xn,yn,minx,mean
+real(double) :: time,flux,dumr,sky,xp,yp,xn,yn,minx,mean,cencut(4)
 real(double), dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep
 character(80) :: filename,dumc
+
+!Centroid Cuts for Neptune
+cencut(1)=-0.2
+cencut(2)= 0.4
+cencut(3)=-0.15
+cencut(4)= 0.25 
+
+!Centroid Cuts for Uranus
+cencut(1)=-0.2
+cencut(2)= 0.3
+cencut(3)=-0.15
+cencut(4)= 0.25
 
 nunit=10
 open(unit=nunit,file=filename,iostat=filestatus,status='old')
@@ -23,8 +35,8 @@ do
    read(nunit,*,iostat=filestatus) time,flux,sky,dumr,xn,yn,npix,   &
       dumc,xp,yp
    if(filestatus == 0) then
-      if((xp.gt.-0.2).and.(xp.lt.0.4).and.(yp.gt.-0.15).and.      &
-       (yp.lt.0.25))then
+      if((xp.gt.cencut(1)).and.(xp.lt.cencut(2)).and.(yp.gt.cencut(3)).and.      &
+       (yp.lt.cencut(4)))then
          i=i+1
          x(i)=time
          y(i)=flux-sky*dble(npix)

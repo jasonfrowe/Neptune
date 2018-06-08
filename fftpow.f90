@@ -126,7 +126,7 @@ dumr=ran2(-seed)
 
 !open PGPLOT device
 call pgopen('?')!('/xserve')  !'?' lets the user choose the device.
-call PGPAP (8.0 ,1.0) !use a square 8" across
+call PGPAP (7.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage() !create a fresh page
 call pgslw(3) !thicker lines

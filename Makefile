@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -parallel -openmp -mkl
+OPT1 = -O3 -mkl
 #OPT1 = -O0 -g -CB -openmp -mkl
 #OPT1 = -O3
 OPT2 = -heap-arrays 0 
@@ -29,7 +29,7 @@ LIBS = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng
 # libraries for linking CFITSIO
 LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng
 #Directory where executable are placed
-BIN = /Users/rowe/Documents/Kepler/Neptune/bin/
+BIN = /Users/rowe/Documents/bin/
 #utils source directory
 UTILS = utils/
 
@@ -60,6 +60,10 @@ pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.
 pixelfit: pixelfit.f90 $(pixelfitincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfit.f90 $(pixelfitincl) $(LIBS)
 
+fitdatav3incl = precision.o getdata.o cutoutliers.o stdev.o meddiff.o rqsort.o
+fitdatav3: fitdatav3.f90 $(fitdatav3incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav3.f90 $(fitdatav3incl)
+
 fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
@@ -69,6 +73,8 @@ fitdata: fitdata.f90 $(fitdataincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdata.f90 $(fitdataincl) $(LIBS) 
 
 #building object libraries
+meddiff.o: $(UTILS)meddiff.f90
+	$(F90) $(FFLAGS) $(UTILS)meddiff.f90
 fittingfft.o: $(UTILS)fittingfft.f90
 	$(F90) $(FFLAGS) $(UTILS)fittingfft.f90
 fitfft.o: $(UTILS)fitfft.f90
