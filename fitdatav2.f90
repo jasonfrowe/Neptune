@@ -158,7 +158,9 @@ res(1:npt)=y(1:npt)-mu(1:npt)
 !call plotdatascatter(npt,x,res,yerr,bb) !plot data
 
 allocate(npixel(npt))
+write(0,*) "Finding jumps"
 call findjumps(npt,x,res,yerr,npixel)
+write(0,*) "Jumps found"
 
 !writing some data to check calculations
 !open(unit=11,file="pixeltest.dat")
