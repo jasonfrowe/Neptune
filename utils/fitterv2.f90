@@ -1,9 +1,10 @@
-subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
+subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp,minx)
 use precision
 implicit none
 !input vars
 integer :: npt,npars,npord
 integer, dimension(:) :: npixel
+real(double) :: minx
 real(double), dimension(:) :: x,y,r,sp
 real(double), dimension(:) :: yerr,pars
 !shared vars
@@ -253,7 +254,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
       open(unit=11,file="pixeltest.dat")
       do ii=1,npt
-         write(11,'(4(F17.11,1X))') x(ii),y(ii),r(ii),sp(ii)
+         write(11,'(4(F17.11,1X))') x(ii)+minx,y(ii),r(ii),sp(ii)
       enddo
       close(11)
 

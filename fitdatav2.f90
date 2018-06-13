@@ -61,11 +61,12 @@ interface
    end subroutine cutoutliers
 end interface
 interface
-   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
+   subroutine fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp,minx)
       use precision
       implicit none
       integer :: npt,npars,npord
       integer, dimension(:) :: npixel
+      real(double) :: minx
       real(double), dimension(:) :: x,y,yerr,pars,r,sp
    end subroutine fitterv2
 end interface
@@ -187,7 +188,7 @@ write(0,*) "Calling fitter"
 !polynomial order for segment fits
 npord=2
 allocate(r(npt),sp(npt))
-call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp)
+call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp,minx)
 
 call exportdata(npt,x,y,yerr,r,sp,xpos,ypos,xnep,ynep,minx,mean)
 
