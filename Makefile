@@ -64,7 +64,7 @@ fitdatav3incl = precision.o getdata.o cutoutliers.o stdev.o meddiff.o rqsort.o
 fitdatav3: fitdatav3.f90 $(fitdatav3incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav3.f90 $(fitdatav3incl)
 
-fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o
+fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o meddiff.o rqsort.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
 

@@ -6,12 +6,11 @@ integer :: npt
 integer, dimension(:) :: npixel
 real(double), dimension(:) :: x,y,yerr
 !local variables
-integer i,nline,ndata,ns,nf,j,imaxth,imaxc,currentpixel,nsampmax,i1,i2, &
-   nsamp
+integer i,nline,ndata,ns,nf,j,imaxth,imaxc,currentpixel
 real(double) :: threshold,th,ap,bp,af,bf,abdevp,abdevf,sig,stdev,mean,  &
-   chisq,maxth,th2,meddiff
+   chisq,maxth,th2
 real(double), allocatable, dimension(:) :: var,xdfit,ydfit,yderr,ans,   &
-   eans,tpixels,samps
+   eans,tpixels
 
 interface !fits a straight line to data
    subroutine fitline(npt,x,y,yerr,ans,eans,chisq)
@@ -24,16 +23,11 @@ interface !fits a straight line to data
    end subroutine fitline
 end interface
 
-!global sigma scatter
-threshold=3.0
+!threshold=0.0005
+threshold=4.0
 sig=stdev(npt,y,mean)
 !write(0,*) "sig: ",sig
 !sig=1.1e-4
-
-!new thresholding vars. 
-nsampmax=25 !number of +/- nearby samples to use for stats
-threshold=3.0
-allocate(samps(nsampmax*2+1))
 
 nline=10 !number of points to use to estimate slope.
 allocate(xdfit(nline),ydfit(nline),yderr(nline),ans(2),eans(2),         &
@@ -48,17 +42,20 @@ allocate(var(3))
 tpixels=0.0d0 !initalize
 
 do i=5,npt-5
-
-   !estimate scatter by taking a local sample, then estimating the standard deviation  
-   i1=max(1,i-nsampmax)
-   i2=min(npt,i+nsampmax)
-   nsamp=i2-i1+1
-   samps(1:nsamp)=y(i1:i2)
-   sig=meddiff(nsamp,samps) !calculate the median point-to-point change.
-
    var(1)=y(i-1)-y(i-2)
    var(2)=y(i)-y(i-1)
    var(3)=y(i)-y(i+1)
+
+!   if( (abs(var(1)).lt.threshold).and.(abs(var(2)).gt.threshold).and.   &
+!    (abs(var(3)).lt.threshold))then
+!      write(0,*) "Jump.."
+!      npixel(i)=npixel(i-1)+1
+!   else
+!      npixel(i)=npixel(i-1)
+!   endif
+
+!   th=var(2)/sqrt(var(1)*var(1)+var(3)*var(3)+sig*sig)
+
 
    ns=max(1,i-nline)
    nf=i-1
@@ -84,6 +81,10 @@ do i=5,npt-5
    call fitline(ndata,xdfit,ydfit,yderr,ans,eans,chisq)
    af=ans(1)
    bf=ans(2)
+
+!   write(0,*) (ap+bp*x(i))-(af+bf*x(i)),abdevp,abdevf
+!   th=((ap+bp*x(i))-(af+bf*x(i)))/sqrt(abdevp*abdevp+      &
+!    abdevf*abdevf)
 
    th2=var(2)/sqrt(var(1)*var(1)+var(3)*var(3)+sig*sig)
    th=((ap+bp*x(i))-(af+bf*x(i)))/sig!max(sig,abdevp,abdevf)
