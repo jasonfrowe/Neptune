@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -mkl
+OPT1 = -O3 -mkl -qopenmp
 #OPT1 = -O0 -g -CB -openmp -mkl
 #OPT1 = -O3
 OPT2 = -heap-arrays 0 
@@ -23,13 +23,11 @@ PGPLOTDIR = /usr/local/lib
 #X11 libraries
 X11DIR = /usr/X11R6/lib
 # libraries for linking PGPLOT
-PLPLOTDIR = -I/usr/local/Cellar/plplot/5.9.11/lib/fortran/modules/plplot -I/usr/local/Cellar/plplot/5.9.11/include/plplot -L/usr/local/Cellar/plplot/5.9.11/lib
-#LIBS = $(PLPLOTDIR) -lplplotf95d -lplplotf95cd
-LIBS = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng
+LIBS = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng -lgfortran
 # libraries for linking CFITSIO
-LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng
+LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng -lgfortran
 #Directory where executable are placed
-BIN = /Users/rowe/Documents/bin/
+BIN = /data/rowe/K2/Neptune/bin/
 #utils source directory
 UTILS = utils/
 
@@ -60,11 +58,7 @@ pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.
 pixelfit: pixelfit.f90 $(pixelfitincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfit.f90 $(pixelfitincl) $(LIBS)
 
-fitdatav3incl = precision.o getdata.o cutoutliers.o stdev.o meddiff.o rqsort.o
-fitdatav3: fitdatav3.f90 $(fitdatav3incl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav3.f90 $(fitdatav3incl)
-
-fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o meddiff.o rqsort.o
+fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o meddiff.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o rqsort.o
 fitdatav2: fitdatav2.f90 $(fitdatav2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
 
