@@ -1,11 +1,11 @@
 program pixelfitpca
 use precision
 implicit none
-integer :: iargc,nmax,npt,ixo,iyo,npars,info,nrhs
+integer :: iargc,nmax,npt,ixo,iyo,npars,info,nrhs,i
 real, allocatable, dimension(:) :: bb
-real(double) :: minx,mean
+real(double) :: minx,mean,pixel
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
- oflux,pmod,smod,ax,ay,xpcor,ypcor,pars,alpha,yerr2,mu,std,res
+ oflux,pmod,smod,ax,ay,xpcor,ypcor,pars,alpha,yerr2,mu,std,res,phase
 real(double), allocatable, dimension(:,:) :: Kernel,KernelZ
 character(80) :: filename
 
@@ -140,12 +140,27 @@ allocate(res(npt))
 !$OMP WORKSHARE
 mu=matmul(KernelZ,alpha)
 std=0.0d0
-res(1:npt)=y(1:npt)-mu(1:npt)
+res(1:npt)=y(1:npt)-mu(1:npt) !contains 'detrended' data
 !$OMP END WORKSHARE
 !$OMP END PARALLEL
 
 write(0,*) "done plotting"
 call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
+
+allocate(phase(npt))
+!write(0,*) "xnep: ",xnep(1),xnep(100)
+!phase(1:npt)=xnep(1:npt)-floor(xnep(1:npt))
+!$OMP PARALLEL DO
+do i=1,npt
+   !pixel=poly(x(i),ixo,ax)
+   pixel=xnep(i)+xpos(i)
+   phase(i)=pixel-floor(pixel)
+enddo
+!$OMP END PARALLEL DO
+
+call pgpage()
+bb=0.0
+call plotdatascatter(npt,phase,res,yerr,bb)
 
 call pgclos()
 
