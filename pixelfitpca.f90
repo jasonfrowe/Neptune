@@ -34,6 +34,12 @@ interface !reads in a three-column ascii space seperated file
       real(double), dimension(:), intent(inout) :: x1,x2,yerr,pars
       real(double), dimension(:,:), intent(inout) :: Kernel
    end subroutine makekernel
+   subroutine plotsamples(npt1,x1,mu,std)
+      use precision
+      implicit none
+      integer, intent(in) :: npt1
+      real(double), dimension(:), intent(in) :: x1,mu,std
+   end subroutine plotsamples
 end interface
 
 !check that we have enough information from the commandline
