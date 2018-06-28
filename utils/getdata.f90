@@ -39,7 +39,7 @@ do
        (yp.lt.cencut(4)))then
          i=i+1
          x(i)=time
-         y(i)=flux-sky*dble(npix)
+         y(i)=flux-sky*dble(npix) !sky correction
          yerr(i)=sqrt(abs(flux)) !approx error
          xpos(i)=xp
          ypos(i)=yp

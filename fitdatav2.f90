@@ -90,6 +90,7 @@ write(0,*) "Number of points read: ",npt !report how much data was read in
 
 !cut out crap.
 call cutoutliers(npt,x,y,yerr,xpos,ypos,xnep,ynep)
+write(0,*) "Number of points after cuts :",npt
 
 !open PGPLOT device
 !call pgopen('/xserve')  !'?' lets the user choose the device.

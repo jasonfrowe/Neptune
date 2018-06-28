@@ -152,31 +152,31 @@ do i=1,nfit
 enddo
 
 !!will output data with fit removed
-!allocate(solt1(nfit),solt2(nfit),solt3(nfit))
-!solt1=sol
-!solt2=sol
-!solt3=sol
-!solt1(11)=0.0d0
-!solt2(1)=0.0d0
-!solt2(2)=0.0d0
-!solt2(8)=0.0d0
-!solt2(11)=0.0d0
-!solt3(1)=0.0d0
-!solt3(5)=0.0d0
-!solt3(8)=0.0d0
-!solt3(11)=0.0d0
+allocate(solt1(nfit),solt2(nfit),solt3(nfit))
+solt1=sol
+solt2=sol
+solt3=sol
+solt1(11)=0.0d0
+solt2(1)=0.0d0
+solt2(2)=0.0d0
+solt2(8)=0.0d0
+solt2(11)=0.0d0
+solt3(1)=0.0d0
+solt3(5)=0.0d0
+solt3(8)=0.0d0
+solt3(11)=0.0d0
 write(0,*) "sol:"
 write(0,'(15(1PE17.10,1X))') sol
-!open(unit=11,file="fittest.dat")
+open(unit=11,file="fittest.dat")
 do i=2,nh
    ftemp=cd2uhz*dble(i-1)/(dt*dnfft)
    ptemp=1.0d12*amp(i)*amp(i)/dfac
-!   write(11,'(10(1PE17.10,1X))') ftemp,ptemp,pmodel(nfit,sol,ftemp),    &
-!    pmodel(nfit,solt1,ftemp),pmodel(nfit,solt2,ftemp),pmodel(nfit,solt3,ftemp)
+   write(11,'(10(1PE17.10,1X))') ftemp,ptemp,pmodel(nfit,sol,ftemp),    &
+    pmodel(nfit,solt1,ftemp),pmodel(nfit,solt2,ftemp),pmodel(nfit,solt3,ftemp)
    meanamp(i)=sqrt(dfac*pmodel(nfit,sol,ftemp)/1.0d12)
    stdamp(i)=sqrt(dfac*pmodel(nfit,sol,ftemp)*thres/1.0d12)-meanamp(i)
 enddo
-!close(11)
+close(11)
 meanamp(1)=meanamp(2)
 stdamp(1)=stdamp(2)
 

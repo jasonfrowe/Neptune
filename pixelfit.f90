@@ -136,7 +136,7 @@ allocate(pars(npars))  !model parameters for Kernel generation.
 pars(1)=1.0d0 !amp scale for exp
 pars(2)=0.72d0 !length scale for exp
 pars(3)=1.0 !second amp scale
-pars(4)=500.0 !second length scale
+pars(4)=2.0 !second length scale
 
 !lets make a Kernel/co-variance for the Gaussian process
 allocate(Kernel(npt,npt)) !allocate space
@@ -203,7 +203,7 @@ call plotdatascatter(npt,phase,res,yerr,bb)
 nfit=2+nxpixel
 allocate(sol(nfit),isol(nfit))
 !sol(1)=A,sol(2)=phi,sol(3)=dA1...
-sol(1)=4.491939850254477E-004
+sol(1)=1.0E-3!4.491939850254477E-004
 isol(1)=0
 sol(2)=4.23820851687563
 isol(2)=-1
