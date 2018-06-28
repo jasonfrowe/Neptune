@@ -3,7 +3,7 @@ use precision
 implicit none
 integer :: iargc,nmax,npt,ixo,iyo,npars,info,nrhs,i
 real, allocatable, dimension(:) :: bb
-real(double) :: minx,mean,pixel
+real(double) :: minx,mean,pixel,poly
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
  oflux,pmod,smod,ax,ay,xpcor,ypcor,pars,alpha,yerr2,mu,std,res,phase
 real(double), allocatable, dimension(:,:) :: Kernel,KernelZ
@@ -152,8 +152,8 @@ allocate(phase(npt))
 !phase(1:npt)=xnep(1:npt)-floor(xnep(1:npt))
 !$OMP PARALLEL DO
 do i=1,npt
-   !pixel=poly(x(i),ixo,ax)
-   pixel=xnep(i)+xpos(i)
+   pixel=poly(x(i),ixo,ax)
+   !pixel=xnep(i)+xpos(i)
    phase(i)=pixel-floor(pixel)
 enddo
 !$OMP END PARALLEL DO
@@ -165,3 +165,21 @@ call plotdatascatter(npt,phase,res,yerr,bb)
 call pgclos()
 
 end program pixelfitpca
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function poly(x,nfit,ans)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+integer :: nfit
+real(double) :: x,poly
+real(double), dimension(nfit) :: ans
+integer :: i
+
+poly=ans(1)
+do i=2,nfit
+   poly=poly+ans(i)*x**dble(i-1)
+enddo
+
+return
+end function
