@@ -35,6 +35,13 @@ interface !reads in a three-column ascii space seperated file
       real(double), dimension(:), intent(inout) :: x1,x2,yerr,pars
       real(double), dimension(:,:), intent(inout) :: Kernel
    end subroutine makekernel
+   subroutine plotdatascatter(npt,x,y,yerr,bb)
+      use precision
+      implicit none
+      integer, intent(inout) :: npt
+      real, dimension(:), intent(inout) :: bb
+      real(double), dimension(:), intent(inout) :: x,y,yerr
+   end subroutine plotdatascatter
    subroutine plotsamples(npt1,x1,mu,std)
       use precision
       implicit none
