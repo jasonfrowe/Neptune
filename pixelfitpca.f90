@@ -4,7 +4,7 @@ implicit none
 integer :: iargc,nmax,npt,ixo,iyo
 real(double) :: minx,mean
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
- oflux,pmod,smod,ax,ay
+ oflux,pmod,smod,ax,ay,xpcor,ypcor
 character(80) :: filename
 
 !These are F90 interfaces that allow one to pass assumed sized arrays
@@ -56,7 +56,11 @@ call pgask(.false.)
 ixo=5 !order of polynomial to fit to x-positions
 iyo=5 !order of polynomial to fit to y-positions
 allocate(ax(ixo),ay(iyo))
-call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+allocate(xpcor(npt),ypcor(npt))
+xpcor=xnep+xpos !correct for pointing jitter
+ypcor=ynep+ypos
+call fitNeptunePos(npt,x,xpcor,ypcor,ixo,ax,iyo,ay)
+deallocate(xpcor,ypcor)
 
 call pgclos()
 
