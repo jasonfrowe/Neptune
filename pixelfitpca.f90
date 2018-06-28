@@ -1,10 +1,10 @@
 program pixelfitpca
 use precision
 implicit none
-integer :: iargc,nmax,npt
+integer :: iargc,nmax,npt,ixo,iyo
 real(double) :: minx,mean
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
- oflux,pmod,smod
+ oflux,pmod,smod,ax,ay
 character(80) :: filename
 
 !These are F90 interfaces that allow one to pass assumed sized arrays

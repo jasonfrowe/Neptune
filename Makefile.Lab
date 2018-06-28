@@ -1,0 +1,85 @@
+#Name of C compiler
+CCMPL = gcc
+#Name of Fortran compiler
+F90 = ifort
+F77 = ifort
+#compiling object file flags
+OPT1 = -O3 -mkl -qopenmp
+#OPT1 = -O0 -g -CB -openmp -mkl
+#OPT1 = -O3
+OPT2 = -heap-arrays 0 
+#OPT2 = 
+FFLAGS = -c $(OPT1) $(OPT2)
+#FFLAGS = -c -O0 -g -CB -warn $(OPT2)
+#linking flags
+LFLAGS = $(OPT1) $(OPT2)
+#LFLAGS = -O0 -g -CB -warn $(OPT2)
+#testing flags
+#LFLAGS = -O0 -g -CB
+#fitsio libraries
+FITSIODIR = /usr/local/lib
+#Pgplot plot libraries
+PGPLOTDIR = /usr/local/lib
+#X11 libraries
+X11DIR = /usr/X11R6/lib
+# libraries for linking PGPLOT
+LIBS = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng 
+# libraries for linking CFITSIO
+LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng 
+#Directory where executable are placed
+BIN = /Users/rowe/Documents/bin/
+#utils source directory
+UTILS = utils/
+
+#Listing of programs to create.
+all: fitdatav2 pixelfit fftpow
+
+pixelfitpcaincl = precision.o getdata.o fitneptunepos.o 
+pixelfitpca: pixelfitpca.f90 $(pixelfitpcaincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfitpca.f90 $(pixelfitpcaincl) $(LIBS)
+
+fftplotincl = 
+fftplot: fftplot.f90 $(fftplotinc)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fftplot.f90 $(fftplotincl) $(LIBS2)
+
+figure3incl = 
+figure3: figure3.f90 $(figure3incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ figure3.f90 $(figure3incl) $(LIBS2)
+
+joinpartsincl = precision.o fitneptunepos.o lfit.o
+joinparts: joinparts.f90 $(joinpartsincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ joinparts.f90 $(joinpartsincl)
+
+gendataincl = precision.o ran2.o
+gendata: gendata.f90 $(gendataincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ gendata.f90 $(gendataincl)
+
+fftpowincl = precision.o fittingfft.o readfftdata.o plotdatascatter.o fftspec.o ran2.o rqsort.o makekernel.o resample.o plotspec.o fftstats.o stdev.o poorwavelet.o heatlut.o ovrwrt.o fitfft.o minpack.o 
+fftpow: fftpow.f90 $(fftpowincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fftpow.f90 $(fftpowincl) $(LIBS) -lfftw3
+
+pixelfitincl = precision.o getdata.o plotdatascatter.o makekernel.o plotsamples.o fitneptunepos.o lfit.o pshapemodel.o pfitter.o lbfgsb.o timer.o linpack.o
+pixelfit: pixelfit.f90 $(pixelfitincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ pixelfit.f90 $(pixelfitincl) $(LIBS)
+
+fitdatav2incl = precision.o getdata.o findjumps.o makekernel.o cutoutliers.o meddiff.o stdev.o fitline.o fitterv2.o pixelmodelv2.o lbfgsb.o timer.o gradient.o spcor.o spline.o exportdata.o linpack.o rqsort.o
+fitdatav2: fitdatav2.f90 $(fitdatav2incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fitdatav2.f90 $(fitdatav2incl)
+
+fitdataincl = precision.o fittingmod.o getdata.o plotdata.o fitline.o plotline.o makekernel.o displaykernel.o heatlut.o stdev.o rqsort.o lapack.o blas.o plotsamples.o plotdatascatter.o fitter.o lfit.o fitneptunepos.o minpack.o fcn.o pixelmodel.o cutoutliers.o
+fitdata: fitdata.f90 $(fitdataincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ fitdata.f90 $(fitdataincl) $(LIBS) 
+
+
+#building object libraries
+%.o : $(UTILS)%.f90
+	$(F90) $(FFLAGS) -o $@ $<
+
+%.o : $(UTILS)%.f
+	$(F77) $(FFLAGS) -o $@ $<
+
+# Removing object files
+.PHONY : clean
+clean :
+	rm *.o
+	rm *.mod
