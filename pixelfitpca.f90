@@ -20,6 +20,12 @@ interface !reads in a three-column ascii space seperated file
          smod,xpos,ypos,xnep,ynep
       character(80), intent(inout) :: filename
    end subroutine getpdata
+   subroutine fitneptunepos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+      use precision
+      implicit none
+      integer :: npt,ixo,iyo
+      real(double), dimension(:) :: x,xnep,ynep,ax,ay
+   end subroutine fitneptunepos
 end interface
 
 !check that we have enough information from the commandline
