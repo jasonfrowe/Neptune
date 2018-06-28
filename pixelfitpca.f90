@@ -152,9 +152,9 @@ allocate(phase(npt))
 !phase(1:npt)=xnep(1:npt)-floor(xnep(1:npt))
 !$OMP PARALLEL DO
 do i=1,npt
-   pixel=poly(x(i),ixo,ax)
+   !pixel=poly(x(i),ixo,ax)
    pixel=xnep(i)!+xpos(i)
-   !phase(i)=pixel-floor(pixel)
+   phase(i)=pixel-floor(pixel)
 enddo
 !$OMP END PARALLEL DO
 
