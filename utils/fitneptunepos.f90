@@ -44,8 +44,8 @@ enddo
 bb=0
 allocate(bb(4))
 bb=0.0d0
-!call plotdatascatter(npt,x,res,sig,bb)
-!call pgpage()
+call plotdatascatter(npt,x,res,sig,bb)
+call pgpage()
 
 !Fit Y-positions
 allocate(iay(iyo),covar(iyo,iyo))
