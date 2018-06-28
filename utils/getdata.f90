@@ -120,7 +120,7 @@ do
    endif
 enddo
 close(nunit) !close file
-npt=i-1
+npt=i!-1
 
 !scale and shift data.
 minx=minval(x(1:npt))

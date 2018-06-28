@@ -38,4 +38,20 @@ allocate(x(nmax),y(nmax),yerr(nmax),oflux(nmax),pmod(nmax),smod(nmax),  &
 call getpdata(filename,npt,nmax,x,y,yerr,oflux,pmod,smod,xpos,ypos,xnep,ynep,minx,mean)
 write(0,*) "Number of points read: ",npt !report how much data was read in
 
+!open PGPLOT device
+call pgopen('/xserve')  !'?' lets the user choose the device.
+call PGPAP (8.0 ,1.0) !use a square 8" across
+call pgpage() !create a fresh page
+call pgslw(3) !thicker lines
+call pgask(.false.)
+
+!need fits to the motion of Neptune - raw data is too noisy.
+!also means that pixel-crossings is now a linear function (good!)
+ixo=5 !order of polynomial to fit to x-positions
+iyo=5 !order of polynomial to fit to y-positions
+allocate(ax(ixo),ay(iyo))
+call fitNeptunePos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+
+call pgclos()
+
 end program pixelfitpca
