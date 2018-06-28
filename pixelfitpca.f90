@@ -2,6 +2,7 @@ program pixelfitpca
 use precision
 implicit none
 integer :: iargc,nmax,npt,ixo,iyo,npars,info,nrhs
+real, allocatable, dimension(:) :: bb
 real(double) :: minx,mean
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
  oflux,pmod,smod,ax,ay,xpcor,ypcor,pars,alpha,yerr2,mu,std,res
@@ -75,6 +76,12 @@ xpcor=xnep+xpos !correct for pointing jitter
 ypcor=ynep+ypos
 call fitNeptunePos(npt,x,xpcor,ypcor,ixo,ax,iyo,ay)
 deallocate(xpcor,ypcor)
+
+!plot the data
+allocate(bb(4))
+bb=0.0e0 !rescale plot
+write(0,*) "plotting.."
+call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
 
 !Here are the parameters that control the co-variance matrix and fitted
 !parameters
