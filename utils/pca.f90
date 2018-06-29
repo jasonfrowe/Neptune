@@ -94,6 +94,10 @@ do i=1,5
 	!call pgpage()
 enddo
 
+do i=1,nspl
+	write(6,500) xp(i),(y(i,j),j=1,5)
+	500 format(6(F9.6,1X))
+enddo
 
 
 return

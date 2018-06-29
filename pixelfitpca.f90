@@ -96,7 +96,8 @@ bb=0.0e0 !rescale plot
 write(0,*) "plotting.."
 call plotdatascatter(npt,x,y,yerr,bb) !plot our original dataset
 
-!!goto 100 !skip GP
+!Skipping GP
+goto 100 !skip GP
 
 !Here are the parameters that control the co-variance matrix and fitted
 !parameters
@@ -156,11 +157,11 @@ res(1:npt)=y(1:npt)-mu(1:npt) !contains 'detrended' data
 deallocate(alpha,Kernel,KernelZ,yerr2)
 
 !code for skipping GP
-!!100 continue
-!!allocate(mu(npt),std(npt),res(npt))
-!!std=0.0d0
-!!mu=0.0d0
-!!res=y
+100 continue
+allocate(mu(npt),std(npt),res(npt))
+std=0.0d0
+mu=0.0d0
+res=y
 
 write(0,*) "done plotting"
 call plotsamples(npt,x,mu,std) !plot our predicted sample set on top.
