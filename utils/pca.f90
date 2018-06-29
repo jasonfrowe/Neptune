@@ -90,7 +90,7 @@ enddo
 
 do i=1,5
 	yp=y(:,i)
-	call plotdatascatter(n,xp,yp,yerr,bb)
+	call plotdatascatter(nspl,xp,yp,yerr,bb)
 	!call pgpage()
 enddo
 

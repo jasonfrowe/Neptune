@@ -32,7 +32,7 @@ call pgsci(1)
 call pgvport(0.15,0.95,0.15,0.95) !make room around the edges for labels
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.20*(bb(4)-bb(3)),0.0,0.5,         &
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.10*(bb(4)-bb(3)),0.0,0.5,         &
    "Time (days)")
 call pgptxt(bb(1)-0.10*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
    "Flux")
