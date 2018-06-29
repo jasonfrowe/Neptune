@@ -110,7 +110,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       INTEGER n
       REAL*8 x,y,xa(n),y2a(n),ya(n)
 C     Given the arrays xa(1:n) and ya(1:n) of length n, which tabulate a
-C     function (with the xai�s in order), and given the array y2a(1:n),
+C     function (with the xai's in order), and given the array y2a(1:n),
 C     which is the output from spline above, and given a value of x,
 C     this routine returns a cubic-spline interpolated value y.
       INTEGER k,khi,klo
