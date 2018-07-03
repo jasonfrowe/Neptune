@@ -1,4 +1,4 @@
-subroutine fitneptunepos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
+subroutine fitneptunepos(npt,x,xnep,ynep,ixo,ax,iyo,ay,nplots)
 !jasonfrowe@gmail.com (2016)
 !npt - number of data points
 !x - time  vector
@@ -6,7 +6,7 @@ subroutine fitneptunepos(npt,x,xnep,ynep,ixo,ax,iyo,ay)
 !ixo,iyo - order of polynomial to fit.
 use precision
 implicit none
-integer :: npt,ixo,iyo
+integer :: npt,ixo,iyo,nplots
 real(double), dimension(:) :: x,xnep,ynep,ax,ay
 
 integer :: i,j
@@ -41,11 +41,12 @@ do i=1,npt
    enddo
    res(i)=xnep(i)-f
 enddo
-bb=0
-allocate(bb(4))
-bb=0.0d0
-call plotdatascatter(npt,x,res,sig,bb)
-call pgpage()
+if(nplots.eq.0)then
+   allocate(bb(4))
+   bb=0.0d0
+   call plotdatascatter(npt,x,res,sig,bb)
+   call pgpage()
+endif
 
 !Fit Y-positions
 allocate(iay(iyo),covar(iyo,iyo))
@@ -61,9 +62,11 @@ do i=1,npt
    enddo
    res(i)=ynep(i)-f
 enddo
-bb=0
-!call plotdatascatter(npt,x,res,sig,bb)
-!call pgpage()
+if(nplots.eq.0)then
+   bb=0
+   !call plotdatascatter(npt,x,res,sig,bb)
+   !call pgpage()
+endif
 
 return
 end subroutine fitneptunepos

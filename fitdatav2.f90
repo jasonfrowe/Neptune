@@ -91,6 +91,7 @@ write(0,*) "Number of points read: ",npt !report how much data was read in
 !cut out crap.
 call cutoutliers(npt,x,y,yerr,xpos,ypos,xnep,ynep)
 write(0,*) "Number of points after cuts :",npt
+goto 900
 
 !open PGPLOT device
 !call pgopen('/xserve')  !'?' lets the user choose the device.
@@ -191,6 +192,10 @@ npord=2
 allocate(r(npt),sp(npt))
 call fitterv2(npt,x,y,yerr,npixel,npars,pars,npord,r,sp,minx)
 
+900 continue
+allocate(r(npt),sp(npt))
+r=y
+sp=y
 call exportdata(npt,x,y,yerr,r,sp,xpos,ypos,xnep,ynep,minx,mean)
 
 !call pgend()
