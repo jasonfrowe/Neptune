@@ -80,7 +80,7 @@ iresampletype=1
 !calcstats 0-no,1-yes
 calcstats=1
 !calcuate fit 0-no,1-yes
-calcfit=1
+calcfit=0
 !wavelet parametrs
 wran1=0.00!1!0.0008d0
 wran2=1.0!0.1!0.012d0
