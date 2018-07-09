@@ -196,7 +196,6 @@ endif
 
 maxp=-1000.0
 minp=1000.0
-!$OMP PARALLEL DO PRIVATE(pixel)
 do i=1,npt
    pixel=pixels(i)
    if(pixel.gt.maxp) maxp=pixel
@@ -204,7 +203,6 @@ do i=1,npt
    !pixel=xnep(i)
    phase(i)=pixel-floor(pixel)
 enddo
-!$OMP END PARALLEL DO
 
 if(nplots.eq.0)then
 	call pgpage()
