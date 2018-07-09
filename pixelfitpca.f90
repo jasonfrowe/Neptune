@@ -183,9 +183,10 @@ endif
 allocate(phase(npt),pixels(npt))
 
 if(npixtype.eq.1)then
-	!$OMP PARALLEL DO
+	!$OMP PARALLEL DO PRIVATE(pixel)
 	do i=1,npt
-   		pixels(i)=poly(x(i),ixo,ax)-xpos(i)
+		pixel=poly(x(i),ixo,ax)
+   		pixels(i)=pixel-xpos(i)
    	enddo
    	!$OMP END PARALLEL DO
 else
@@ -195,7 +196,7 @@ endif
 
 maxp=-1000.0
 minp=1000.0
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(pixel)
 do i=1,npt
    pixel=pixels(i)
    if(pixel.gt.maxp) maxp=pixel
