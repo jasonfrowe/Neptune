@@ -2,11 +2,11 @@ program pixelfitpca
 use precision
 implicit none
 integer :: iargc,nmax,npt,ixo,iyo,npars,info,nrhs,i,j,k,imaxp,iminp,npix,&
- npixsampmax,nspl,minsamp,npca,ngpflag,npixtype,nplots
+ npixsampmax,nspl,minsamp,npca,ngpflag,npixtype,nplots,ii
 integer, allocatable, dimension(:) :: npixsamp
 integer, allocatable, dimension(:,:) :: npixmap
 real, allocatable, dimension(:) :: bb
-real(double) :: minx,mean,pixel,poly,maxp,minp,timediv,px,py,dnsplm1
+real(double) :: minx,mean,pixel,poly,maxp,minp,timediv,px,py,dnsplm1,pxold
 real(double), allocatable, dimension(:) :: x,y,yerr,xpos,ypos,xnep,ynep,&
  oflux,pmod,smod,ax,ay,xpcor,ypcor,pars,alpha,yerr2,mu,std,res,phase,xspl,&
  yspl,pixels,xp,yp,zp
@@ -228,7 +228,10 @@ do i=1,npt
 	endif
 enddo
 
-npixsampmax=maxval(npixsamp) !now we know the largest array size.
+!now we know the largest array size.
+!add 2 for edges to avoid extrapolation
+npixsampmax=maxval(npixsamp)+2 
+!write(0,*) npixsampmax
 
 deallocate(npixsamp)
 allocate(npixsamp(npix*2)) !now we need twice as much
@@ -265,19 +268,57 @@ allocate(xspl(npixsampmax),yspl(npixsampmax)) !storage for individual pixel LCs
 k=0
 do j=1,npix*2
 	if(npixsamp(j).gt.minsamp)then !only use well sampled pixels.
+
+		ii=0
+		if(j.gt.1)then
+			if(npixsamp(j-1).gt.0)then
+				ii=ii+1
+				pxold=pixels(npixmap(1,j-1))
+				do i=1,npixsamp(j-1)
+					px=pixels(npixmap(i,j-1))
+					if(px.ge.pxold)then
+						xspl(ii)=px-floor(px)-1.0d0 !x-position
+						yspl(ii)=res(npixmap(i,j-1)) !flux
+						pxold=px
+					endif
+				enddo
+				!write(0,*) ii,xspl(ii),yspl(ii)
+			endif
+		endif
+
 		k=k+1
 		do i=1,npixsamp(j)
 			px=pixels(npixmap(i,j))
-			xspl(i)=px-floor(px) !x-position
-			yspl(i)=res(npixmap(i,j)) !flux
-			!write(0,*) xspl(i),yspl(i)
+			xspl(i+ii)=px-floor(px) !x-position
+			yspl(i+ii)=res(npixmap(i,j)) !flux
+			!write(0,*) i+ii,xspl(i+ii),yspl(i+ii)
 		enddo
+
+		if(j.lt.npix*2)then
+			if(npixsamp(j+1).gt.0)then
+				ii=ii+1
+				pxold=pixels(npixmap(1,j+1))
+				do i=1,npixsamp(j+1)
+					px=pixels(npixmap(i,j+1))
+					if(px.le.pxold)then
+						xspl(npixsamp(j)+ii)=px-floor(px)+1.0d0 !x-position
+						yspl(npixsamp(j)+ii)=res(npixmap(i,j+1)) !flux
+						pxold=px
+					endif
+				enddo
+				!write(0,*) "last"
+				!write(0,*) npixsamp(j)+ii,xspl(npixsamp(j)+ii),yspl(npixsamp(j)+ii)
+			endif
+		endif
+
+		!read(5,*)
+
 		!need to sort xspl,yspl 
-		call sort(npixsamp(j),xspl,yspl)
+		call sort(npixsamp(j)+ii,xspl,yspl)
 		!now we can resample.
 		do i=1,nspl !resample onto common grid
 			px=dble(i-1)/dnsplm1
-			call lininterp(xspl,yspl,npixsamp(j),px,py)
+			call lininterp(xspl,yspl,npixsamp(j)+ii,px,py)
 			!write(0,*) px,py
 			xpca(i,k)=py !store resampled value into grid.
 			!write(0,*) i,k,py
@@ -292,6 +333,7 @@ deallocate(xspl,yspl) !deallocate spline resources.
 allocate(pcavec(nspl,npix*2)) !contains PCAs
 call pca(nspl,npca,xpca,nspl,npix*2,pcavec) !call PCA routine
 
+!make a plot of the PCA
 if(nplots.eq.0)then
 	call pgpage()
 	bb=0.0
@@ -313,6 +355,8 @@ if(nplots.eq.0)then
 	enddo
 endif
 
+!fit PCA to data
+!call pcafit(nspl,npix*2,pcavec,npixsampmax,npix*2,npixsamp,npixmap,npt,pixels,res)
 
 if(nplots.eq.0) call pgclos()
 
